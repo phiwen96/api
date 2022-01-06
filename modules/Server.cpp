@@ -127,7 +127,7 @@ export auto serve (char const* port, auto&& callback) -> int
 			close(sockfd); // child doesn't need the listener
 
 			
-			if ((numbytes = recv (sockfd, buf, max_data_size-1, 0)) == -1) 
+			if ((numbytes = recv (new_fd, buf, max_data_size-1, 0)) == -1) 
 			{ 
 				perror("recv");
 				exit(1); 
