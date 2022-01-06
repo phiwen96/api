@@ -15,9 +15,22 @@ __OBJ := $(subst .cpp,.pcm,$(MODULES))
 _OBJ := $(foreach F,$(__OBJ),$(word $(words $(subst /, ,$F)),$(subst /, ,$F)))
 OBJ := $(foreach name, $(_OBJ), $(addprefix $(OBJ_DIR)/, $(name)))
 
+_BUILD_DIRS := libs obj docs tests
+BUILD_DIRS := $(foreach dir, $(_BUILD_DIRS), $(addprefix $(BUILD_DIR)/, $(dir)))
+
 
 $(MAIN): $(OBJ_DIR)/main.o $(MODULES)
-	$(CXX) $(CXX_FLAGS) $(OBJ_DIR)/server.o -o $@
+	$(CXX) $(CXX_FLAGS) $(OBJ_DIR)/main.o -o $@
 
-$(OBJ_DIR)/main.o: $(PROJ_DIR)/main.cpp $(LIB)
+$(OBJ_DIR)/main.o: $(PROJ_DIR)/main.cpp $(OBJ_DIR)/api.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@
+
+$(OBJ_DIR)/api.pcm: $(MODULES_DIR)/api.cpp
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
+
+
+
+directories := $(foreach dir, $(BUILD_DIRS), $(shell [ -d $(dir) ] || mkdir -p $(dir)))
+
+clean:
+	rm -rf $(BUILD_DIR)/*
