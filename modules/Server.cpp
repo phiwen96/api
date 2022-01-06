@@ -1,23 +1,61 @@
+#include <signal.h>
+
 export module Server;
 
-auto serve (int, char **) -> int
+export import Darwin;
+import std;
+
+namespace api 
+{
+
+constexpr auto max_data_size = 1024; // max number of bytes we can get at once
+constexpr auto backlog = 10;
+
+inline auto sigchld_handler (int s) -> void
+{
+	// waitpid() might overwrite errno, so we save and restore it:
+	int saved_errno = errno;
+
+	while (waitpid(-1, NULL, WNOHANG) > 0)
+		;
+	errno = saved_errno;
+}
+
+// get sockaddr, IPv4 or
+inline auto get_in_addr (sockaddr *sa) -> void *
+{
+	if (sa->sa_family == AF_INET)
+	{
+		return &(((struct sockaddr_in *)sa)->sin_addr);
+	}
+
+	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+}
+
+export auto serve (char const* port, auto&& callback) -> int
 {
 	std::cout << "starting restful api" << std::endl;
 
-	int sockfd, new_fd; // listen on sock_fd, new connection on new_fd struct addrinfo hints, *servinfo, *p;
+	int sockfd, new_fd, numbytes; // listen on sock_fd, new connection on new_fd struct addrinfo hints, *servinfo, *p;
 	struct addrinfo *servinfo, *p;
 	struct sockaddr_storage their_addr; // connector's address information 
 	socklen_t sin_size;
 	int yes = 1;
-	char s[INET6_ADDRSTRLEN];
+	char s [INET6_ADDRSTRLEN];
 	int rv;
+	char buf [max_data_size];
 
-	auto hints = addrinfo{
+	auto hints = addrinfo
+	{
 		.ai_family = AF_UNSPEC,
 		.ai_socktype = SOCK_STREAM,
-		.ai_flags = AI_PASSIVE};
+		.ai_flags = AI_PASSIVE
+	};
 
-	if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0)
+	
+	
+
+	if ((rv = getaddrinfo(NULL, port, &hints, &servinfo)) != 0)
 	{
 		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
 		return 1;
@@ -51,7 +89,7 @@ auto serve (int, char **) -> int
 		fprintf(stderr, "server: failed to bind\n");
 		exit(1);
 	}
-	if (listen(sockfd, BACKLOG) == -1)
+	if (listen(sockfd, backlog) == -1)
 	{
 		perror("listen");
 		exit(1);
@@ -88,7 +126,18 @@ auto serve (int, char **) -> int
 		{				   // this is the child process
 			close(sockfd); // child doesn't need the listener
 
-			if (send(new_fd, "Hello, world!", 13, 0) == -1)
+			
+			if ((numbytes = recv (sockfd, buf, max_data_size-1, 0)) == -1) 
+			{ 
+				perror("recv");
+				exit(1); 
+			}
+
+			buf [numbytes] = '\0';
+
+			char const* outgoing = callback (buf); 
+
+			if (send(new_fd, outgoing, strlen (outgoing), 0) == -1)
 			{
 				perror("send");
 			}
@@ -100,4 +149,5 @@ auto serve (int, char **) -> int
 	}
 
 	return 0;
+}
 }
