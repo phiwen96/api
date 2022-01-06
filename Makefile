@@ -22,8 +22,11 @@ BUILD_DIRS := $(foreach dir, $(_BUILD_DIRS), $(addprefix $(BUILD_DIR)/, $(dir)))
 $(MAIN): $(OBJ_DIR)/main.o $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(OBJ_DIR)/main.o -o $@
 
-$(OBJ_DIR)/main.o: $(PROJ_DIR)/main.cpp $(OBJ_DIR)/api.pcm
+$(OBJ_DIR)/main.o: $(PROJ_DIR)/main.cpp $(OBJ_DIR)/Server.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@
+
+$(OBJ_DIR)/Server.pcm: $(MODULES_DIR)/Server.cpp
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
 
 $(OBJ_DIR)/api.pcm: $(MODULES_DIR)/api.cpp
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
