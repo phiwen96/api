@@ -9,6 +9,7 @@ auto main (int, char **) -> int
 {
 	auto callback = [] (string incoming) -> char const*
 	{
+		cout << "new message!" << endl;
 		cout << incoming << endl;
 		return "hej";
 	};

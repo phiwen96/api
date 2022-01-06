@@ -4,6 +4,7 @@ export module Server;
 
 export import Darwin;
 export import std;
+using std::cout, std::endl;
 
 namespace api 
 {
@@ -30,6 +31,28 @@ inline auto get_in_addr (sockaddr *sa) -> void *
 	}
 
 	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
+}
+
+inline auto sendall (int sock, char const* buf, int* len) -> int 
+{
+	int total = 0;
+	int bytesleft = *len;
+	int n;
+
+	while (total < *len)
+	{
+		n = send (sock, buf + total, bytesleft, 0);
+		if (n == -1)
+		{
+			break;
+		}
+		total += n;
+		bytesleft -= n;
+	}
+
+	*len = total;
+
+	return n==-1?-1:0; // return -1 on failure, 0 on success
 }
 
 export auto serve (char const* port, auto&& callback) -> int
@@ -126,18 +149,25 @@ export auto serve (char const* port, auto&& callback) -> int
 		{				   // this is the child process
 			close(sockfd); // child doesn't need the listener
 
-			
+						// cout << "received data from client" << endl;
+
 			if ((numbytes = recv (new_fd, buf, max_data_size-1, 0)) == -1) 
 			{ 
 				perror("recv");
 				exit(1); 
 			}
 
+			cout << "received data from client" << endl;
+
+			
+
 			buf [numbytes] = '\0';
 
 			char const* outgoing = callback (buf); 
 
-			if (send(new_fd, outgoing, strlen (outgoing), 0) == -1)
+			int len = strlen (outgoing);
+
+			if (sendall(new_fd, outgoing, &len) == -1)
 			{
 				perror("send");
 			}
