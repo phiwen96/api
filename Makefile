@@ -28,10 +28,6 @@ $(OBJ_DIR)/main.o: $(PROJ_DIR)/main.cpp $(OBJ_DIR)/Server.pcm
 $(OBJ_DIR)/Server.pcm: $(MODULES_DIR)/Server.cpp
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
 
-$(OBJ_DIR)/api.pcm: $(MODULES_DIR)/api.cpp
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
-
-
 
 directories := $(foreach dir, $(BUILD_DIRS), $(shell [ -d $(dir) ] || mkdir -p $(dir)))
 
