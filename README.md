@@ -1,5 +1,7 @@
+# The following table shows RESTful APIs
+
 | ---------- | ----------- | ------------- | ------------- |
-|     URI    | HTTP Method |   POST body   |     Result    |
+|    URI     | HTTP Method |   POST body   |     Result    |
 | ---------- | ----------- | ------------- | ------------- |
 | login      |    POST     | JSON string   |     login     |
 | ---------- | ----------- | ------------- | ------------- |
@@ -9,7 +11,7 @@
 | ---------- | ----------- | ------------- | ------------- |
 | list       |    GET      | empty         | lists users   |
 | ---------- | ----------- | ------------- | ------------- |
-| reset      |    POST     | JSON string   | reset password|
+| reset      |    POST     | JSON string   | resetspassword|
 | ---------- | ----------- | ------------- | ------------- |
 | search     |    POST     | JSON string   | lists users   |
 | ---------- | ----------- | ------------- | ------------- |
