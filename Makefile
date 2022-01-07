@@ -26,7 +26,8 @@ __MODULES := $(subst .cpp,.pcm,$(SOURCES))
 _MODULES := $(foreach F,$(__MODULES),$(word $(words $(subst /, ,$F)),$(subst /, ,$F)))
 MODULES := $(foreach name, $(_MODULES), $(addprefix $(MODULES_DIR)/, $(name)))
 
-__APPS := $(subst .cpp,,$(TARGETS))
+# __APPS := $(subst .cpp,,$(TARGETS))
+__APPS = $(basename $(TARGETS))
 _APPS := $(foreach F,$(__APPS),$(word $(words $(subst /, ,$F)),$(subst /, ,$F)))
 APPS := $(foreach name, $(_APPS), $(addprefix $(APPS_DIR)/, $(name)))
 
@@ -54,7 +55,7 @@ $(APPS_DIR)/server: $(OBJECTS_DIR)/server.o
 $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
-
+# $(info $$NAMES is [${NAMES}])
 
 
 ######## Modules ###########
