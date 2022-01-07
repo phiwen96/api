@@ -21,18 +21,21 @@ OBJ := $(foreach name, $(_OBJ), $(addprefix $(OBJ_DIR)/, $(name)))
 _BUILD_DIRS := libs obj docs tests
 BUILD_DIRS := $(foreach dir, $(_BUILD_DIRS), $(addprefix $(BUILD_DIR)/, $(dir)))
 
+######################################
+all: $(CLIENT) $(SERVER)
+
 ######## Client ###########
-$(CLIENT): $(OBJ_DIR)/client.o $(MODULES)
+$(CLIENT): $(OBJ_DIR)/client.o
 	$(CXX) $(CXX_FLAGS) $(OBJ_DIR)/client.o -o $@
 
-$(OBJ_DIR)/client.o: $(PROJ_DIR)/client.cpp $(OBJ_DIR)/Client.pcm $(OBJ_DIR)/Http.pcm
+$(OBJ_DIR)/client.o: $(PROJ_DIR)/client.cpp $(OBJ)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(INCLUDE_NLOHMANN)
 
 ######## Server ###########
-$(SERVER): $(OBJ_DIR)/server.o $(MODULES)
+$(SERVER): $(OBJ_DIR)/server.o
 	$(CXX) $(CXX_FLAGS) $(OBJ_DIR)/server.o -o $@
 
-$(OBJ_DIR)/server.o: $(PROJ_DIR)/server.cpp $(OBJ_DIR)/Server.pcm $(OBJ_DIR)/Http.pcm
+$(OBJ_DIR)/server.o: $(PROJ_DIR)/server.cpp $(OBJ)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(INCLUDE_NLOHMANN)
 
 
