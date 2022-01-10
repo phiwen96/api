@@ -4,6 +4,8 @@ import std;
 
 export
 {
+	using std::cout, std::endl;
+
 	auto const http_status = std::unordered_map<int, std::string>{
 		{200, "OK"},
 		{301, "Moved Permanently"},
@@ -25,10 +27,40 @@ export
 			return os;
 		}
 
-		static auto parse(std::string const &s) -> std::optional<http_request_line>
+		static auto parse(std::string const &line_in) -> std::optional<http_request_line>
 		{
-			auto r = http_request_line{};
-			return r;
+			auto line_out = http_request_line{};
+
+			if (auto i = line_in.find(' ');
+				i != std::string::npos)
+			{
+				line_out.request_type = std::string {line_in.begin (), line_in.begin() + i};
+				// cout << "request type:" << line_out.request_type << endl;
+				if (auto j = line_in.find ("HTTP/"); 
+					j != std::string::npos)
+				{
+					line_out.url = std::string {line_in.begin() + i + 1, line_in.begin() + j};
+					// cout << "url:" << line_out.url << endl;
+					auto version = std::string {line_in.begin() + j + 5, line_in.end()};
+					// cout << "version:" << version << endl;
+
+					line_out.version = std::stof (version);
+				} 
+
+				else 
+				{
+					std::cout << "Failed to parse url" << std::endl;
+					return std::nullopt;
+				}
+			}
+
+			else 
+			{
+				std::cout << "Failed to parse request type" << std::endl;
+				return std::nullopt;
+			}
+			
+			return line_out;
 		}
 	};
 
@@ -113,6 +145,7 @@ export
 			}
 			else
 			{
+				std::cout << "Failed to parse request line" << std::endl;
 				return std::nullopt;
 			}
 
