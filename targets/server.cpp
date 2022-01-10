@@ -10,7 +10,7 @@ using std::cout, std::endl, std::string;
 
 auto main (int, char **) -> int
 {	
-	auto callback = [] (string incoming) -> char const*
+	auto callback = [] (string incoming) -> std::string
 	{
 		// std::stringstream ss {incoming};
 		// std::string word;
@@ -19,6 +19,27 @@ auto main (int, char **) -> int
 		// while (std::getline (ss, word))
 		// 	cout << word << endl;
 		auto request = http_request::parse (incoming);
+
+		if (not request) 
+		{
+			auto response = http_response 
+			{
+				.status_line = 
+				{
+					.version = 1.0, 
+					.status_code = 400,
+					.status_phrase = "Bad Request"
+				}, 
+
+				.headers = 
+				{
+					{"Server", "ph"}
+				}
+			};
+
+			return to_string (response);
+		}
+		
 
 		cout << "new message!" << endl;
 		cout << incoming << endl;

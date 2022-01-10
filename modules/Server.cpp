@@ -163,7 +163,7 @@ export auto serve (char const* port, auto&& callback) -> int
 
 			buf [numbytes] = '\0';
 
-			char const* outgoing = callback (buf); 
+			char const* outgoing = callback (buf).c_str (); 
 
 			int len = strlen (outgoing);
 

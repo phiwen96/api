@@ -53,7 +53,11 @@ auto main(int, char **) -> int
 
 	auto response_copy = http_response::parse (to_string (response));
 
-	cout << response_copy.value() << endl;
+	if (not response_copy.has_value ())
+	{
+		cout << "error" << endl;
+		exit (1);
+	}
 
 
 
