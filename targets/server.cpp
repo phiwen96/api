@@ -22,7 +22,10 @@ auto main (int, char **) -> int
 }
 
 // "HTTP/1.1 200 OK\r\n"
-// 			   "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+// "Server: ph"
+// "Content-Type: text/html; charset=UTF-8\r\n\r\n"
+// "Content-Length: 200/r/n"
+
 // 			   "<!DOCTYPE html>\r\n"
 // 			   "<html><head><title>Testing</title></head>\r\n"
 // 			   "<body><p>Testing</p></body><html>\r\n";
