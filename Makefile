@@ -41,6 +41,13 @@ BUILD_DIRS := $(foreach dir, $(_BUILD_DIRS), $(addprefix $(BUILD_DIR)/, $(dir)))
 ######################################
 all: $(APPS)
 
+######## Test ###########
+$(APPS_DIR)/test: $(OBJECTS_DIR)/test.o
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/test.o -o $@
+
+$(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp $(MODULES)
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
+
 ######## Client ###########
 $(APPS_DIR)/client: $(OBJECTS_DIR)/client.o
 	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@

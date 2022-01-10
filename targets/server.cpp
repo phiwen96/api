@@ -9,7 +9,7 @@ using std::cout, std::endl, std::string;
 
 
 auto main (int, char **) -> int
-{
+{	
 	auto callback = [] (string incoming) -> char const*
 	{
 		// std::stringstream ss {incoming};

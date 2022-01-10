@@ -91,7 +91,7 @@ export
 		 	std::getline (ss, line);
 
 			if (auto request_line = http_request_line::parse (line);
-					request_line.has_value ())
+				request_line.has_value ())
 			{
 				request.request_line = request_line.value ();
 
@@ -104,9 +104,13 @@ export
 			while (std::getline (ss, line))
 			{
 				if (auto header = http_header::parse (line);
-						header.has_value ())
+					header.has_value ())
 				{
+					request.headers.push_back (header.value ());
 					
+				} else 
+				{
+					return std::nullopt;
 				}
 			}
 
