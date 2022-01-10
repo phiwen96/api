@@ -21,7 +21,17 @@ auto main(int, char **) -> int
 				{"Content-Type", "application/json; charset-UTF-8"},
 				{"Content-Length", "20"}}};
 
-	cout << request << endl;
+	// cout << request << endl;
+	auto request_str = to_string (request);
+	auto copy = http_request::parse (request_str);
+	if (not copy.has_value ())
+	{
+		cout << "error" << endl;
+		exit (1);
+	}
+	// cout << copy.value () << endl;
+	// cout << copy << endl;
+
 
 	return 0;
 }
