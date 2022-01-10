@@ -12,6 +12,14 @@ auto main (int, char **) -> int
 {
 	auto callback = [] (string incoming) -> char const*
 	{
+		// std::stringstream ss {incoming};
+		// std::string word;
+		// while (ss >> word)
+		// 	cout << word << endl;
+		// while (std::getline (ss, word))
+		// 	cout << word << endl;
+		auto request = http_request::parse (incoming);
+
 		cout << "new message!" << endl;
 		cout << incoming << endl;
 		return "hej";
