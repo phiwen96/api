@@ -64,7 +64,7 @@ export
 		}
 	};
 
-		struct http_header
+	struct http_header
 	{
 		std::string name;
 		std::string value;
@@ -85,7 +85,8 @@ export
 				header_out.name = std::string{header_in.begin(), header_in.begin() + i};
 				// std::cout << "name:" << header_out.name << std::endl;
 
-				header_out.value = std::string{header_in.begin() + i, header_in.end()};
+				header_out.value = std::string{header_in.begin() + i + 2, header_in.end()};
+				std::cout << "value:" << header_out.value << std::endl;
 
 				if (header_out.value.size() == 0)
 				{
