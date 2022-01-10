@@ -73,9 +73,9 @@ export
 
 		friend auto operator << (std::ostream& os, http_request const& me) -> std::ostream&
 		{
-			os << me.request_line << '\n';
+			os << me.request_line;
 			for (auto const& header : me.headers)
-				os << header << "\r\n";
+				os << header;
 			return os;
 		}
 
@@ -131,5 +131,12 @@ export
 	};
 
 
+	inline auto to_string (http_request const& request) -> std::string 
+	{
+		auto result = std::string {};
+		auto stream = std::stringstream {result};
+		stream << request;
+		return result;
+	}
 	
 }
