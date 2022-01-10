@@ -59,24 +59,12 @@ export
 				std::cout << "Failed to parse request type" << std::endl;
 				return std::nullopt;
 			}
-			
+
 			return line_out;
 		}
 	};
 
-	struct http_response_status_line
-	{
-		double version;
-		std::string status;
-
-		static auto parse(std::string const &s) -> std::optional<http_response_status_line>
-		{
-			auto r = http_response_status_line{};
-			return r;
-		}
-	};
-
-	struct http_header
+		struct http_header
 	{
 		std::string name;
 		std::string value;
@@ -167,15 +155,93 @@ export
 		}
 	};
 
+	struct http_status_line
+	{
+		float version;
+		int status_code;
+		std::string status_phrase;
+
+		static auto parse(std::string const &line_in) -> std::optional<http_status_line>
+		{
+			auto line_out = http_status_line{};
+			auto version = std::string {};
+			auto status_code = std::string {};
+
+			auto stream = std::stringstream {line_in};
+
+			stream >> version;
+			stream >> status_code;
+			stream >> line_out.status_phrase;
+
+			if (auto i = version.find ("HTTP/");
+				i != std::string::npos)
+			{
+				line_out.version = std::stof (std::string {version.begin() + i + 5, version.end ()});
+
+			} else 
+			{
+				std::cout << "Failed to find http version" << endl;
+				return std::nullopt;
+			}
+
+			line_out.status_code = std::stof (status_code);
+
+			return line_out;
+		}
+
+		friend auto operator<<(std::ostream &os, http_status_line const &me) -> std::ostream &
+		{
+			os << "HTTP/" << std::fixed << std::setprecision(1) << me.version << ' ' << me.status_code << ' ' << me.status_phrase << "\r\n";
+			return os;
+		}
+	};
+
+
+
 	struct http_response
 	{
-		http_response_status_line status_line;
+		http_status_line status_line;
 		std::vector<http_header> headers;
 
-		static auto parse(std::string const &s) -> std::optional<http_response>
+		static auto parse(std::string const &response_in) -> std::optional<http_response>
 		{
-			auto r = http_response{};
-			return r;
+			auto response_out = http_response {};
+			auto line = std::string {};
+			auto stream = std::stringstream {response_in};
+			getline (stream, line);
+
+			if (auto status_line = http_status_line::parse (line);
+				status_line.has_value ())
+			{
+				response_out.status_line = status_line.value ();
+
+				while (getline (stream, line))
+				{
+					if (auto header = http_header::parse (line);
+						header.has_value ())
+					{
+						response_out.headers.push_back (header.value ());
+
+					} else 
+					{
+						return std::nullopt;
+					}
+				}
+
+			} else 
+			{
+				return std::nullopt;
+			}
+
+			return response_out;
+		}
+
+		friend auto operator<<(std::ostream &os, http_response const &me) -> std::ostream &
+		{
+			os << me.status_line;
+			for (auto const &header : me.headers)
+				os << header;
+			return os;
 		}
 	};
 

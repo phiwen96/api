@@ -9,26 +9,54 @@ auto main(int, char **) -> int
 {
 	cout << "starting test...\n\n";
 
-	auto request = http_request{
+	auto request = http_request
+	{
 		.request_line =
-			{
-				.request_type = "POST",
-				.version = 1.0,
-				.url = "/login"},
+		{
+			.request_type = "POST",
+			.version = 1.0,
+			.url = "/login"
+		},
 
 		.headers =
-			{
-				{"Content-Type", "application/json; charset-UTF-8"},
-				{"Content-Length", "20"}}};
+		{
+			{"Content-Type", "application/json; charset-UTF-8"},
+			{"Content-Length", "20"}
+		}
+	};
 
 
-	auto copy = http_request::parse (to_string (request));
+	auto request_copy = http_request::parse (to_string (request));
 
-	if (not copy.has_value ())
+	if (not request_copy.has_value ())
 	{
 		cout << "error" << endl;
 		exit (1);
 	}
+
+	auto response = http_response 
+	{
+		.status_line = 
+		{
+			.version = 1.0, 
+			.status_code = 200,
+			.status_phrase = "OK"
+		}, 
+
+		.headers = 
+		{
+			{"Server", "ph"},
+			{"Content-Type", "text/html; charset=UTF-8"},
+			{"Content-Length", "?"}
+		}
+	};
+
+	auto response_copy = http_response::parse (to_string (response));
+
+	cout << response_copy.value() << endl;
+
+
+
 	// cout << copy.value () << endl;
 	// cout << copy << endl;
 
