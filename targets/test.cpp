@@ -32,7 +32,12 @@ auto main(int, char **) -> int
 			{"Content-Length", "20"}
 		},
 
-		.data = user.dump ()
+		.data = json 
+		{
+			{"username", "phille1234"},
+			{"password", "hej"}
+
+		}.dump()
 	};
 
 
@@ -49,8 +54,8 @@ auto main(int, char **) -> int
 		.status_line = 
 		{
 			.version = 1.0, 
-			.status_code = 200,
-			.status_phrase = "OK"
+			.status_code = 400,
+			.status_phrase = "Bad Request"
 		}, 
 
 		.headers = 
@@ -58,8 +63,18 @@ auto main(int, char **) -> int
 			{"Server", "ph"},
 			{"Content-Type", "text/html; charset=UTF-8"},
 			{"Content-Length", "?"}
-		}
+		},
+
+		.data = json 
+		{
+			{"success", false},
+			{"status code", 3},
+			{"status message", "Could not interpret the request"}
+
+		}.dump()
 	};
+
+	cout << response << endl;
 
 	auto response_copy = http_response::parse (to_string (response));
 

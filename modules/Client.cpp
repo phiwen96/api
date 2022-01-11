@@ -40,7 +40,7 @@ inline auto sendall(int sock, char const *buf, int *len) -> int
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
 
-export inline auto send(char const *address, char const *port, char const *message) -> char const *
+export inline auto send(char const *address, char const *port, std::string const& message) -> char const *
 {
 	int sockfd, numbytes;
 	char buf[max_data_size];
@@ -80,12 +80,12 @@ export inline auto send(char const *address, char const *port, char const *messa
 		exit(1);
 	}
 	inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
-	printf("client: connecting to %s\n", s);
+	// printf("client: connecting to %s\n", s);
 	freeaddrinfo(servinfo); // all done with this structure
 
-	int len = strlen(message);
+	int len = message.size();
 
-	if (sendall(sockfd, message, &len) == -1)
+	if (sendall(sockfd, message.c_str (), &len) == -1)
 	{
 		perror("send");
 	}

@@ -132,7 +132,7 @@ export
 		{
 			auto request = http_request{};
 
-			if (auto i = s.find ("\r\n\r\n")) // cut data from string 
+			if (auto i = s.find ("\r\n\r\n")) // cut json data from string 
 			{
 				request.data = std::string (s.begin () + i + 4, s.end ());
 				s.erase (i);
@@ -218,25 +218,35 @@ export
 	{
 		http_status_line status_line;
 		std::vector<http_header> headers;
+		std::string data;
 
-		static auto parse(std::string const &response_in) -> std::optional<http_response>
+		static auto parse(std::string in) -> std::optional<http_response>
 		{
-			auto response_out = http_response {};
+			auto response = http_response {};
+
+			if (auto i = in.find ("\r\n\r\n")) // cut json data from string 
+			{
+				response.data = std::string (in.begin () + i + 4, in.end ());
+				in.erase (i);
+			}
+
+			
 			auto line = std::string {};
-			auto stream = std::stringstream {response_in};
+			auto stream = std::stringstream {in};
+
 			getline (stream, line);
 
-			if (auto status_line = http_status_line::parse (line);
+			if (auto status_line = http_status_line::parse (line); // parse status line success
 				status_line.has_value ())
 			{
-				response_out.status_line = status_line.value ();
+				response.status_line = status_line.value ();
 
 				while (getline (stream, line))
 				{
 					if (auto header = http_header::parse (line);
 						header.has_value ())
 					{
-						response_out.headers.push_back (header.value ());
+						response.headers.push_back (header.value ());
 
 					} else 
 					{
@@ -244,19 +254,27 @@ export
 					}
 				}
 
-			} else 
+			} else // parse status line fail
 			{
 				return std::nullopt;
 			}
 
-			return response_out;
+			return response;
 		}
 
 		friend auto operator<<(std::ostream &os, http_response const &me) -> std::ostream &
 		{
 			os << me.status_line;
+
 			for (auto const &header : me.headers)
+			{
 				os << header;
+			}
+
+			if (me.data.size() > 0)
+			{
+				os << "\r\n" << me.data;
+			}
 			return os;
 		}
 	};

@@ -18,11 +18,11 @@ auto main (int, char **) -> int
 
 	while (not authenticated)
 	{
-		cout << "Enter username: ";
+		cout << "username >> ";
 		cin >> inp;
 		user ["username"] = inp;
 
-		cout << "Enter password: ";
+		cout << "password >> ";
 		cin >> inp;
 		user ["password"] = inp;
 
@@ -43,16 +43,20 @@ auto main (int, char **) -> int
 			.data = user.dump ()
 		};
 
-		std::stringstream s;
-		s << request;
+		// std::stringstream s;
+		// s << request;
 		
 		
 
 		// cout << msg << endl;
 
-		auto from_server = send ("127.0.0.1", "8080", s.str().c_str());
-		// cout << from_server << endl;
-	}
+		auto from_server = send ("127.0.0.1", "8080", to_string (request));
+		auto response = http_response::parse (from_server);
+
+		
+		cout << response.value () << endl;
+
+	} // authentication
 
 	
 

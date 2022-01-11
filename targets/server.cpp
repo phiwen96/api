@@ -20,60 +20,80 @@ auto main (int, char **) -> int
 	{
 		auto request = http_request::parse (incoming);
 
+		// cout << request.value () << endl;
+
+		auto response = http_response 
+		{
+			.status_line = 
+			{
+				.version = 1.0
+			},
+
+			.headers = 
+			{
+				{"Server", "ph"}
+			}
+		};
+
+		auto data = json 
+		{
+			{"success", false},
+			{"status code", 3},
+			{"status message", "Could not interpret the request"}
+		};
+
 		if (not request) // Error in request, return bad call kind of resonse.
 		{
-			auto response = http_response 
-			{
-				.status_line = 
-				{
-					.version = 1.0, 
-					.status_code = 400,
-					.status_phrase = "Bad Request"
-				}, 
-
-				.headers = 
-				{
-					{"Server", "ph"}
-				}
-			};
-
-			return to_string (response);
-		}
-
-		if (request -> request_line.url == "/login")
+			response.status_line.status_code = 400;
+			response.status_line.status_phrase = "Bad Request"; 
+			
+		} else if (request -> request_line.url == "/login")
 		{
-			auto data = json::parse (request -> data);
-			// cout << std::setw(4) << data << endl;
-			// cout << std::setw(4) << users << endl;
+			auto client_info = json::parse (request -> data);
 			auto exists = false;
-			// cout << data["username"] << endl;
 
-			for (auto const& user : users)
+			for (auto const& user : users) // loop through all users to find client user
 			{
-				if (user ["username"] == data ["username"])
+				if (user ["username"] == client_info ["username"]) // correct username
 				{
-					if (user ["password"] == data ["password"])
+					if (user ["password"] == client_info ["password"]) // correct password
 					{
+						cout << "yay" << endl;
+						response.status_line.status_code = 200;
+						response.status_line.status_phrase = "OK";
+
+						data ["success"] = true;
+						data ["status code"] = 1;
+						data ["status message"] = "Success";
+
+						break;
 						
-					} else 
+					} else // incorrect password
 					{
-						
+						response.status_line.status_code = 404;
+						response.status_line.status_phrase = "Not Found";
+
+						data ["success"] = false;
+						data ["status code"] = 5;
+						data ["status message"] = "Login fail, incorrect password";
 					}
 
-				} else 
+				} else // incorrect username
 				{
-
+					response.status_line.status_code = 404;
+					response.status_line.status_phrase = "Not Found";
+						
+					data ["success"] = false;
+					data ["status code"] = 4;
+					data ["status message"] = "Login fail, incorrect username";
 				}
 			}
-				// cout << "::" << i.dump() << endl;
-		} else 
-		{
-			cout << "what?" << endl;
-			cout << request->request_line.url << endl;
-			cout << request->request_line.url.size() << endl;
- 		}
+		} 
 		
-		return "hej";
+		response.data = data.dump ();
+		cout << to_string (response) << endl;
+
+		return to_string (response);
 	};
 
 	api::serve ("8080", callback);
