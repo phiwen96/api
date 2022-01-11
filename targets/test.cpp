@@ -2,12 +2,20 @@
 
 import Http;
 import std;
+#include <nlohmann/json.hpp>
+using namespace nlohmann;
 
 using std::cout, std::endl, std::string;
 
 auto main(int, char **) -> int
 {
 	cout << "starting test...\n\n";
+
+	auto user = json {};
+
+	user ["username"] = "phille1234";
+	user ["password"] = "kisskorv123";
+	// cout << user.dump () << endl;
 
 	auto request = http_request
 	{
@@ -22,7 +30,9 @@ auto main(int, char **) -> int
 		{
 			{"Content-Type", "application/json; charset-UTF-8"},
 			{"Content-Length", "20"}
-		}
+		},
+
+		.data = user.dump ()
 	};
 
 

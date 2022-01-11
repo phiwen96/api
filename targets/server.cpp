@@ -2,25 +2,20 @@
 
 import Server;
 import Http;
+#include <nlohmann/json.hpp>
 
 using std::cout, std::endl, std::string;
 // using namespace std;
-
+using namespace nlohmann;
 
 
 auto main (int, char **) -> int
 {	
 	auto callback = [] (string incoming) -> std::string
 	{
-		// std::stringstream ss {incoming};
-		// std::string word;
-		// while (ss >> word)
-		// 	cout << word << endl;
-		// while (std::getline (ss, word))
-		// 	cout << word << endl;
 		auto request = http_request::parse (incoming);
 
-		if (not request) 
+		if (not request) // Error in request, return bad call kind of resonse.
 		{
 			auto response = http_response 
 			{
@@ -39,6 +34,11 @@ auto main (int, char **) -> int
 
 			return to_string (response);
 		}
+
+		if (request -> request_line.url == "/login")
+		{
+			auto data = json::parse (request -> data);
+		}
 		
 
 		cout << "new message!" << endl;
@@ -52,8 +52,8 @@ auto main (int, char **) -> int
 
 // "HTTP/1.1 200 OK\r\n"
 // "Server: ph"
-// "Content-Type: text/html; charset=UTF-8\r\n\r\n"
-// "Content-Length: 200/r/n"
+// "Content-Type: text/html; charset=UTF-8\r\n"
+// "Content-Length: 200\r\n\r\n"
 
 // 			   "<!DOCTYPE html>\r\n"
 // 			   "<html><head><title>Testing</title></head>\r\n"

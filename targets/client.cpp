@@ -38,7 +38,9 @@ auto main (int, char **) -> int
 			.headers = 
 			{
 				{"Content-Type", "application/json; charset-UTF-8"}
-			}
+			},
+
+			.data = user.dump ()
 		};
 
 		std::stringstream s;

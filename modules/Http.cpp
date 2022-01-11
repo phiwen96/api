@@ -108,24 +108,39 @@ export
 	{
 		http_request_line request_line;
 		std::vector<http_header> headers;
+		std::string data;
 
 		friend auto operator<<(std::ostream &os, http_request const &me) -> std::ostream &
 		{
 			os << me.request_line;
+
 			for (auto const &header : me.headers)
+			{
 				os << header;
+			}
+
+			if (me.data.size() > 0)
+			{
+				os << "\r\n" << me.data;
+			}
+
 			return os;
 		}
 
-		static auto parse(std::string const &s) -> std::optional<http_request>
+		static auto parse (std::string s) -> std::optional<http_request>
 		{
 			auto request = http_request{};
+
+			if (auto i = s.find ("\r\n\r\n")) // cut data from string 
+			{
+				request.data = std::string (s.begin () + i + 4, s.end ());
+				s.erase (i);
+			}
 
 			auto ss = std::stringstream{s};
 			auto line = std::string{};
 
-			// parse request line
-			std::getline(ss, line);
+			std::getline(ss, line); // get request-line
 
 			if (auto request_line = http_request_line::parse(line);
 				request_line.has_value())
@@ -136,10 +151,9 @@ export
 			{
 				std::cout << "Failed to parse request line" << std::endl;
 				return std::nullopt;
-			}
+			}			
 
-			// parse headers
-			while (std::getline(ss, line))
+			while (std::getline(ss, line)) // get header
 			{
 				if (auto header = http_header::parse(line);
 					header.has_value())

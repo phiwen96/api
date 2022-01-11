@@ -163,11 +163,11 @@ export auto serve (char const* port, auto&& callback) -> int
 
 			buf [numbytes] = '\0';
 
-			char const* outgoing = callback (buf).c_str (); 
+			std::string outgoing = callback (buf); 
 
-			int len = strlen (outgoing);
+			int len = outgoing.size ();
 
-			if (sendall(new_fd, outgoing, &len) == -1)
+			if (sendall(new_fd, outgoing.c_str (), &len) == -1)
 			{
 				perror("send");
 			}
