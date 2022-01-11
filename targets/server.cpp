@@ -11,7 +11,12 @@ using namespace nlohmann;
 
 auto main (int, char **) -> int
 {	
-	auto callback = [] (string incoming) -> std::string
+	// read a JSON file
+	auto file_users = std::ifstream {"data/users.json"};
+	auto users = json {};
+	file_users >> users;
+
+	auto callback = [&users] (string incoming) -> std::string
 	{
 		auto request = http_request::parse (incoming);
 
@@ -36,13 +41,21 @@ auto main (int, char **) -> int
 		}
 
 		if (request -> request_line.url == "/login")
-		{
+		{cout << "login" << endl;
 			auto data = json::parse (request -> data);
+
+			auto exists = false;
+
+			for (auto const& user : users)
+			{
+				if (user ["username"] == data ["username"])
+				{
+					cout << "user exists" << endl;
+				}
+			}
+				// cout << "::" << i.dump() << endl;
 		}
 		
-
-		cout << "new message!" << endl;
-		cout << incoming << endl;
 		return "hej";
 	};
 

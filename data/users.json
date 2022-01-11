@@ -2,19 +2,21 @@
 	{
 		"id": 0,
 		"name": "Philip Wenkel",
-		"email": "philip.sve@hotmail.com",
+		"username": "phille1234",
+		"email": "philip@wenkel.work",
 		"password": "hej"
 	},
 	{
 		"id": 1,
 		"name": "Oscar Wenkel",
+		"username": "orre",
 		"email": "philip.sve@hotmail.com",
 		"password": "dej"
 	},
 	{
 		"id": 2,
-		"name": "Oscar Wenkel",
-		"email": "philip.sve@hotmail.com",
+		"name": "erik mallas",
+		"email": "philipius96@gmail.com",
 		"password": "dej"
 	}
 ]
