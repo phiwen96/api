@@ -8,6 +8,7 @@ export
 
 	auto const http_status = std::unordered_map<int, std::string>{
 		{200, "OK"},
+		{201, "Created"},
 		{301, "Moved Permanently"},
 		{400, "Bad Request"},
 		{404, "Not Found"},
@@ -39,7 +40,7 @@ export
 				if (auto j = line_in.find ("HTTP/"); 
 					j != std::string::npos)
 				{
-					line_out.url = std::string {line_in.begin() + i + 1, line_in.begin() + j};
+					line_out.url = std::string {line_in.begin() + i + 1, line_in.begin() + j - 1};
 					// cout << "url:" << line_out.url << endl;
 					auto version = std::string {line_in.begin() + j + 5, line_in.end()};
 					// cout << "version:" << version << endl;

@@ -41,20 +41,37 @@ auto main (int, char **) -> int
 		}
 
 		if (request -> request_line.url == "/login")
-		{cout << "login" << endl;
+		{
 			auto data = json::parse (request -> data);
-
+			// cout << std::setw(4) << data << endl;
+			// cout << std::setw(4) << users << endl;
 			auto exists = false;
+			// cout << data["username"] << endl;
 
 			for (auto const& user : users)
 			{
 				if (user ["username"] == data ["username"])
 				{
-					cout << "user exists" << endl;
+					if (user ["password"] == data ["password"])
+					{
+						
+					} else 
+					{
+						
+					}
+
+				} else 
+				{
+
 				}
 			}
 				// cout << "::" << i.dump() << endl;
-		}
+		} else 
+		{
+			cout << "what?" << endl;
+			cout << request->request_line.url << endl;
+			cout << request->request_line.url.size() << endl;
+ 		}
 		
 		return "hej";
 	};
