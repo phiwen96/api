@@ -47,46 +47,57 @@ auto main (int, char **) -> int
 			response.status_line.status_code = 400;
 			response.status_line.status_phrase = "Bad Request"; 
 			
-		} else if (request -> request_line.url == "/login")
+		} else if (request -> request_line.url == "/login") // client wants to login
 		{
 			auto client_info = json::parse (request -> data);
-			auto exists = false;
+
+			auto username_ok = false;
+			auto password_ok = false;
 
 			for (auto const& user : users) // loop through all users to find client user
 			{
 				if (user ["username"] == client_info ["username"]) // correct username
 				{
+					username_ok = true;
+
 					if (user ["password"] == client_info ["password"]) // correct password
 					{
-						cout << "yay" << endl;
-						response.status_line.status_code = 200;
-						response.status_line.status_phrase = "OK";
+						password_ok = true;
+					} 
 
-						data ["success"] = true;
-						data ["status code"] = 1;
-						data ["status message"] = "Success";
+					break;
+				} 
+			}
 
-						break;
+			if (password_ok) // correct user
+			{
+				response.status_line.status_code = 200;
+				response.status_line.status_phrase = "OK";
+
+				data ["success"] = true;
+				data ["status code"] = 1;
+				data ["status message"] = "Success";
+
+				// remember client for future requests since its logged in
+				
+
+			} else if (username_ok) // incorrect password
+			{
+				response.status_line.status_code = 404;
+				response.status_line.status_phrase = "Not Found";
+
+				data ["success"] = false;
+				data ["status code"] = 5;
+				data ["status message"] = "Login fail, incorrect password";
+
+			} else  // incorrect username
+			{
+				response.status_line.status_code = 404;
+				response.status_line.status_phrase = "Not Found";
 						
-					} else // incorrect password
-					{
-						response.status_line.status_code = 404;
-						response.status_line.status_phrase = "Not Found";
-
-						data ["success"] = false;
-						data ["status code"] = 5;
-						data ["status message"] = "Login fail, incorrect password";
-					}
-
-				} else // incorrect username
-				{
-					response.status_line.status_code = 404;
-					response.status_line.status_phrase = "Not Found";
-						
-					data ["success"] = false;
-					data ["status code"] = 4;
-					data ["status message"] = "Login fail, incorrect username";
-				}
+				data ["success"] = false;
+				data ["status code"] = 4;
+				data ["status message"] = "Login fail, incorrect username";
 			}
 		} 
 		
