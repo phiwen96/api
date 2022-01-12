@@ -11,6 +11,7 @@ export
 		{201, "Created"},
 		{301, "Moved Permanently"},
 		{400, "Bad Request"},
+		{403, "Forbidden"},
 		{404, "Not Found"},
 		{505, "HTTP Version Not Supported"}};
 
@@ -187,7 +188,8 @@ export
 
 			stream >> version;
 			stream >> status_code;
-			stream >> line_out.status_phrase;
+			std::getline (stream, line_out.status_phrase);
+			
 
 			if (auto i = version.find ("HTTP/");
 				i != std::string::npos)

@@ -19,5 +19,12 @@
 		"username": "malle",
 		"email": "philipius96@gmail.com",
 		"password": "dej"
+	},
+	{
+		"id": 3,
+		"name": "Philip Wenkel",
+		"username": "p",
+		"email": "philip@wenkel.work",
+		"password": "p"
 	}
 ]

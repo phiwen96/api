@@ -6,8 +6,15 @@ export import Darwin;
 export import std;
 using std::cout, std::endl;
 
-namespace api 
+
+// export std::string* logged_clients; // holds logged in clients with respective user id
+// export int logged_clients_reserved = 20;
+// export int logged_clients_size = 0;
+
+export 
 {
+	std::vector <std::string> logged_clients {};
+}
 
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
@@ -64,7 +71,7 @@ export auto serve (char const* port, auto&& callback) -> int
 	struct sockaddr_storage their_addr; // connector's address information 
 	socklen_t sin_size;
 	int yes = 1;
-	char s [INET6_ADDRSTRLEN];
+	char client_address [INET6_ADDRSTRLEN];
 	int rv;
 	char buf [max_data_size];
 
@@ -142,8 +149,8 @@ export auto serve (char const* port, auto&& callback) -> int
 			continue;
 		}
 
-		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof s);
-		printf("server: got connection from %s\n", s);
+		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), client_address, sizeof client_address);
+		printf("server: got connection from %s\n", client_address);
 
 		if (!fork())
 		{				   // this is the child process
@@ -157,13 +164,13 @@ export auto serve (char const* port, auto&& callback) -> int
 				exit(1); 
 			}
 
-			cout << "received data from client" << endl;
+			// cout << "received data from client" << endl;
 
 			
 
 			buf [numbytes] = '\0';
 
-			std::string outgoing = callback (buf); 
+			std::string outgoing = callback (buf, client_address); 
 
 			int len = outgoing.size ();
 
@@ -179,5 +186,4 @@ export auto serve (char const* port, auto&& callback) -> int
 	}
 
 	return 0;
-}
 }
