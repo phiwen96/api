@@ -4,7 +4,7 @@ import std;
 
 export
 {
-	using std::cout, std::endl;
+	// using std::cout, std::endl;
 
 	auto const http_status = std::unordered_map<int, std::string>{
 		{200, "OK"},
@@ -198,7 +198,7 @@ export
 
 			} else 
 			{
-				std::cout << "Failed to find http version" << endl;
+				std::cout << "Failed to find http version" << std::endl;
 				return std::nullopt;
 			}
 
@@ -224,13 +224,21 @@ export
 
 		static auto parse(std::string in) -> std::optional<http_response>
 		{
+			
+
 			auto response = http_response {};
+
+
 
 			if (auto i = in.find ("\r\n\r\n")) // cut json data from string 
 			{
+				std::cout << in << std::endl;
 				response.data = std::string (in.begin () + i + 4, in.end ());
+				std::cout << "bajs" << std::endl;
 				in.erase (i);
 			}
+
+			
 
 			
 			auto line = std::string {};

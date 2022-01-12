@@ -49,17 +49,17 @@ $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 ######## Client ###########
-$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@
+$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@ $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm
 
-$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES)
+$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/server.o -o $@
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Http.pcm
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/server.o -o $@ $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Http.pcm
 
-$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES)
+$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Http.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 # $(info $$NAMES is [${NAMES}])
@@ -73,7 +73,7 @@ $(MODULES_DIR)/Server.pcm: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Http.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
 
 $(MODULES_DIR)/Http.pcm: $(SOURCES_DIR)/Http.cpp
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@
 
 
 

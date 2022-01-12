@@ -1,9 +1,8 @@
+export module Client;
 #include <signal.h>
 
-export module Client;
-
-export import Darwin;
-export import std;
+import Darwin;
+import std;
 
 // get sockaddr, IPv4 or IPv6:
 inline auto get_in_addr(sockaddr *sa) -> void *

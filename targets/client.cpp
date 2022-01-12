@@ -1,17 +1,20 @@
 import Client;
+import Http;
+import std;
+
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
-using std::cout, std::cin, std::endl, std::string;
+// using std::cout, std::cin, std::endl, std::string;
 
-import Http;
+
 
 #define PORT "8080"
 #define SERVER_ADDRESS "127.0.0.1"
 
 auto main (int, char **) -> int
 {
-	string inp;
+	std::string inp;
 
 
 	// cout << send ("127.0.0.1", "8080", "hello world") << endl;
@@ -21,12 +24,12 @@ auto main (int, char **) -> int
 
 	while (not authenticated)
 	{
-		cout << "username >> ";
-		cin >> inp;
+		std::cout << "username >> ";
+		std::cin >> inp;
 		user ["username"] = inp;
 
-		cout << "password >> ";
-		cin >> inp;
+		std::cout << "password >> ";
+		std::cin >> inp;
 		user ["password"] = inp;
 
 		auto request = http_request 
@@ -47,11 +50,12 @@ auto main (int, char **) -> int
 		};
 
 		auto from_server = send (SERVER_ADDRESS, PORT, to_string (request));
+		// std::cout << from_server << std::endl;
 		auto response = http_response::parse (from_server);
 
 		if (not response) // Cannot interpret response from client
 		{
-			cout << "error, cant interpret response from server, starting over..." << endl;
+			std::cout << "error, cant interpret response from server, starting over..." << std::endl;
 			continue;
 		}
 
@@ -59,6 +63,7 @@ auto main (int, char **) -> int
 
 		auto status_code = status_json ["status code"].get <int> ();
 
+		
 		switch (status_code)
 		{
 			case 1: // success 
@@ -70,8 +75,8 @@ auto main (int, char **) -> int
 			case 4: // incorrect username
 			{
 				// check if new user
-				cout << "new user? >> ";
-				cin >> inp; 
+				std::cout << "new user? >> ";
+				std::cin >> inp; 
 				break;
 			}
 
@@ -83,17 +88,17 @@ auto main (int, char **) -> int
 		}
 	} // authentication
 
-	cout << "logged in >> ";
+	std::cout << "logged in >> ";
 	
 	auto close = false;
 
 	while (not close)
 	{
-		cin >> inp;
+		std::cin >> inp;
 
 		if (inp == "exit")
 		{
-			cout << "logging u off" << endl;
+			std::cout << "logging u off" << std::endl;
 
 			auto request = http_request 
 			{
@@ -117,7 +122,7 @@ auto main (int, char **) -> int
 
 			if (not response) // Cannot interpret response from client
 			{
-				cout << "error, cant interpret response from server, exiting..." << endl;
+				std::cout << "error, cant interpret response from server, exiting..." << std::endl;
 				exit (1);
 			}
 
@@ -134,7 +139,7 @@ auto main (int, char **) -> int
 
 				default: // we assume everything else is an error
 				{
-					cout << "error, skipping command" << endl;
+					std::cout << "error, skipping command" << std::endl;
 					break;
 				}
 			}

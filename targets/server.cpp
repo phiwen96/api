@@ -1,14 +1,27 @@
 // server.cpp
 
 
-import Http;
+
 #include <nlohmann/json.hpp>
+// #include <signal.h>
+
 
 // using std::cout, std::endl, std::string;
 // using namespace std;
 using namespace nlohmann;
 
 import Server;
+// import Darwin;
+import Http;
+import std;
+
+
+
+
+
+
+
+
 
 auto main (int, char **) -> int
 {	
@@ -18,9 +31,13 @@ auto main (int, char **) -> int
 	file_users >> users;
 	file_users.close ();
 
+	auto logged = std::vector <std::string> {};
+
+
+	
 	
 
-	// logged_clients = (std::string*) std::malloc (sizeof (std::string) * logged_clients_reserved);
+	// setup ();
 
 
 
@@ -30,7 +47,6 @@ auto main (int, char **) -> int
 	// process a clients message and return a response
 	auto callback = [&] (std::string incoming, std::string client_address) -> std::string
 	{
-		// cout << logged_clients_size << "..." << endl;
 		auto response = http_response 
 		{
 			.status_line = 
@@ -42,13 +58,6 @@ auto main (int, char **) -> int
 			{
 				{"Server", "ph"}
 			}
-		};
-
-		auto status_json = json 
-		{
-			{"success", false},
-			{"status code", 3},
-			{"status message", "Could not interpret the request"}
 		};
 
 		auto request = http_request::parse (incoming);
@@ -66,25 +75,19 @@ auto main (int, char **) -> int
 			return nullptr;
 		};
 
-		// auto logged_in = [&] () -> auto // checks if logged in and fills in the required response if not
-		// {
-		// 	auto i = logged_clients.begin ();
-
-		// 	for (; i != logged_clients.end (); ++i)
-		// 	{
-		// 		if (i -> first == client_address)
-		// 		{
-		// 			break;
-		// 		}
-		// 	}
-
-		// 	return i;
-		// };
-
 		if (not request) // Error in request, return bad call kind of resonse.
 		{
 			response.status_line.status_code = 400;
 			response.status_line.status_phrase = "Bad Request"; 
+
+			auto status = json 
+			{
+				{"success", false},
+				{"status code", 3},
+				{"status message", "Could not interpret the request"}
+			};
+
+			response.data = status.dump ();
 
 			return to_string (response);
 		} 
@@ -113,89 +116,119 @@ auto main (int, char **) -> int
 
 			if (password_ok) // correct username and password
 			{
-				cout << "password ok!" << endl;
+				// std::cout << "password ok!" << std::endl;
+
+
 				response.status_line.status_code = 200;
 				response.status_line.status_phrase = "OK";
 
-				status_json ["success"] = true;
-				status_json ["status code"] = 1;
-				status_json ["status message"] = "Success";
+				auto status = json 
+				{
+					{"success", true},
+					{"status code", 1},
+					{"status message", "Success"}
+				};
 
-				logged_clients.push_back (client_address);
-				// if (logged_clients_size >= logged_clients_reserved)
-				// {
-				// 	logged_clients_reserved *= 2;
-				// 	logged_clients = (std::string*) std::realloc (logged_clients, logged_clients_reserved);
-				// }
+				response.data = status.dump ();
 
-				// logged_clients [logged_clients_size] = client_address;
-				// ++ logged_clients_size;
+				
+				
+				// logged.push_back (client_address);
+				// cout << logged.size() << endl;
+
+				// logged_clients.push_back (client_address);
+
+				logged.push_back (client_address);
+
+				// std::cout << "logged:" << logged.size << std::endl;
+
+				// std::cout << "response:" << response << std::endl;
+
 
 				// remember client for future requests since its logged in (implement timeout?)
 				// logged_clients [client_address] = (*user) ["id"];
 				// logged_clients.push_back (client_address);
 				// cout << logged_clients.size () << endl;
+						// std::cout << "response:" << response << std::endl;
+
 
 			} else if (username_ok) // incorrect password
 			{
 				response.status_line.status_code = 404;
 				response.status_line.status_phrase = "Not Found";
 
-				status_json ["success"] = false;
-				status_json ["status code"] = 5;
-				status_json ["status message"] = "Login fail, incorrect password";
+				auto status = json 
+				{
+					{"success", false},
+					{"status code", 5},
+					{"status message", "Login fail, incorrect password"}
+				};
+
+				response.data = status.dump ();
 
 			} else  // incorrect username
 			{
 				response.status_line.status_code = 404;
 				response.status_line.status_phrase = "Not Found";
+
+				auto status = json 
+				{
+					{"success", false},
+					{"status code", 4},
+					{"status message", "Login fail, incorrect username"}
+				};
 				
-				status_json ["success"] = false;
-				status_json ["status code"] = 4;
-				status_json ["status message"] = "Login fail, incorrect username";
+				response.data = status.dump ();
 			}
+
+							// std::cout << "logged:" << logged.size << std::endl;
+
 
 		} else if (method == "/logout") // client wants to logout
 		{
 			// check if user is logged in
-			// cout << "client wants to logout" << endl;
-			// cout << "logged users = " << logged_clients_size << endl;
 
-			auto i = std::find (logged_clients.begin (), logged_clients.end (), client_address);
+		
 
-			if (i != logged_clients.end ()) // OK
+			auto i = std::find (logged.begin(), logged.end(), client_address);
+
+			if (i != logged.end ()) // OK
 			{	
-				cout << "ok, loggin out" << endl;
+				logged.erase (i); // remove from logged users
+
 				// prepare response message
 				response.status_line.status_code = 200;
 				response.status_line.status_phrase = "OK";
-				status_json ["status message"] = "Success";
-				status_json ["status code"] = 1;
 
-				// remove user from logged in users
-				logged_clients.erase (i);
+				auto status = json 
+				{
+					{"success", true},
+					{"status code", 1},
+					{"status message", "Success"}
+				};
+				
+				response.data = status.dump ();
 
 			} else // user not even logged in
-			{
-				cout << "error, loggin out" << endl;
+			{				
 				response.status_line.status_code = 403;
 				response.status_line.status_phrase = "Forbidden";
-				status_json ["status message"] = "Request denied, client not logged in";
-				status_json ["status code"] = 6;
 
+				auto status = json 
+				{
+					{"success", false},
+					{"status code", 6},
+					{"status message", "Request denied, client not logged in"}
+				};
+				
+				response.data = status.dump ();
 			} 
 
 		} else if (method == "/register") // client wants to register new user
 		{
 			
 		} 
-		
-		response.data = status_json.dump ();
-		// cout << to_string (response) << endl;
 
-				// cout << "authenticated clients:" << logged_clients.size () << endl;
-
-		// cout << "..." << logged_clients_size << endl;
 		return to_string (response);
 	};
 

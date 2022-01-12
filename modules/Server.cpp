@@ -1,20 +1,23 @@
 #include <signal.h>
 
+
 export module Server;
 
 export import Darwin;
-export import std;
+import std;
 using std::cout, std::endl;
 
 
-// export std::string* logged_clients; // holds logged in clients with respective user id
-// export int logged_clients_reserved = 20;
-// export int logged_clients_size = 0;
 
-export 
-{
-	std::vector <std::string> logged_clients {};
-}
+// using std::cout, std::endl, std::string;
+// using namespace std;
+// using namespace nlohmann;
+
+
+// export 
+// {
+// 	std::vector <std::string> logged_clients {};
+// }
 
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
@@ -62,8 +65,17 @@ inline auto sendall (int sock, char const* buf, int* len) -> int
 	return n==-1?-1:0; // return -1 on failure, 0 on success
 }
 
-export auto serve (char const* port, auto&& callback) -> int
+
+
+
+
+
+
+
+export inline auto serve (char const* port, auto&& callback) -> int
 {
+	
+
 	std::cout << "starting restful api" << std::endl;
 
 	int sockfd, new_fd, numbytes; // listen on sock_fd, new connection on new_fd struct addrinfo hints, *servinfo, *p;
@@ -152,9 +164,9 @@ export auto serve (char const* port, auto&& callback) -> int
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), client_address, sizeof client_address);
 		printf("server: got connection from %s\n", client_address);
 
-		if (!fork())
-		{				   // this is the child process
-			close(sockfd); // child doesn't need the listener
+		// if (!fork())
+		// {				   // this is the child process
+			// close(sockfd); // child doesn't need the listener
 
 						// cout << "received data from client" << endl;
 
@@ -170,7 +182,7 @@ export auto serve (char const* port, auto&& callback) -> int
 
 			buf [numbytes] = '\0';
 
-			std::string outgoing = callback (buf, client_address); 
+			std::string outgoing = callback (buf, client_address);
 
 			int len = outgoing.size ();
 
@@ -179,9 +191,9 @@ export auto serve (char const* port, auto&& callback) -> int
 				perror("send");
 			}
 
-			close(new_fd);
-			exit(0);
-		}
+			// close(new_fd);
+			// exit(0);
+		// }
 		close(new_fd); // parent doesn't need this
 	}
 
