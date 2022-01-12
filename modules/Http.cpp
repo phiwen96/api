@@ -232,9 +232,9 @@ export
 
 			if (auto i = in.find ("\r\n\r\n")) // cut json data from string 
 			{
-				std::cout << in << std::endl;
+				// std::cout << in << std::endl;
 				response.data = std::string (in.begin () + i + 4, in.end ());
-				std::cout << "bajs" << std::endl;
+				// std::cout << "bajs" << std::endl;
 				in.erase (i);
 			}
 

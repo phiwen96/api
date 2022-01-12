@@ -20,85 +20,94 @@ auto main (int, char **) -> int
 	// cout << send ("127.0.0.1", "8080", "hello world") << endl;
 	auto user = json {};
 
-	auto authenticated = false;
 
-	while (not authenticated)
+	auto authenticate = [&] () -> void
 	{
-		std::cout << "username >> ";
-		std::cin >> inp;
-		user ["username"] = inp;
+		auto authenticated = false;
 
-		std::cout << "password >> ";
-		std::cin >> inp;
-		user ["password"] = inp;
-
-		auto request = http_request 
+		while (not authenticated)
 		{
-			.request_line = 
+			std::cout << "username >> ";
+			std::cin >> inp;
+			user ["username"] = inp;
+
+			std::cout << "password >> ";
+			std::cin >> inp;
+			user ["password"] = inp;
+
+			auto request = http_request 
 			{
-				.request_type = "POST",
-				.version = 1.0,
-				.url = "/login"
-			},
+				.request_line = 
+				{
+					.request_type = "POST",
+					.version = 1.0,
+					.url = "/login"
+				},
 
-			.headers = 
+				.headers = 
+				{
+					{"Content-Type", "application/json; charset-UTF-8"}
+				},
+
+				.data = user.dump ()
+			};
+
+			auto from_server = send (SERVER_ADDRESS, PORT, to_string (request));
+			// std::cout << from_server << std::endl;
+			auto response = http_response::parse (from_server);
+
+			if (not response) // Cannot interpret response from client
 			{
-				{"Content-Type", "application/json; charset-UTF-8"}
-			},
-
-			.data = user.dump ()
-		};
-
-		auto from_server = send (SERVER_ADDRESS, PORT, to_string (request));
-		// std::cout << from_server << std::endl;
-		auto response = http_response::parse (from_server);
-
-		if (not response) // Cannot interpret response from client
-		{
-			std::cout << "error, cant interpret response from server, starting over..." << std::endl;
-			continue;
-		}
-
-		auto status_json = json::parse (response -> data);
-
-		auto status_code = status_json ["status code"].get <int> ();
-
-		
-		switch (status_code)
-		{
-			case 1: // success 
-			{
-				authenticated = true;
-				break;
+				std::cout << "error, cant interpret response from server, starting over..." << std::endl;
+				continue;
 			}
 
-			case 4: // incorrect username
+			auto status_json = json::parse (response -> data);
+
+			auto status_code = status_json ["status code"].get <int> ();
+
+			
+			switch (status_code)
 			{
-				// check if new user
-				std::cout << "new user? >> ";
-				std::cin >> inp; 
-				break;
+				case 1: // success 
+				{
+					authenticated = true;
+					break;
+				}
+
+				case 4: // incorrect username
+				{
+					// check if new user
+					std::cout << "new user? >> ";
+					std::cin >> inp; 
+					break;
+				}
+
+				case 5: // incorrect password
+				{
+
+					break;
+				}
 			}
+		} // authentication
+	};
 
-			case 5: // incorrect password
-			{
+AUTH:
 
-				break;
-			}
-		}
-	} // authentication
+	authenticate ();
 
-	std::cout << "logged in >> ";
-	
 	auto close = false;
+
+	std::cout << "online >> ";
+
 
 	while (not close)
 	{
 		std::cin >> inp;
 
-		if (inp == "exit")
+		if (inp == "logout")
 		{
-			std::cout << "logging u off" << std::endl;
+			// std::cout << "logging u off" << std::endl;
 
 			auto request = http_request 
 			{
@@ -134,7 +143,8 @@ auto main (int, char **) -> int
 			{
 				case 1: // success
 				{
-					close = true;
+					goto AUTH;
+					// close = true;
 				}
 
 				default: // we assume everything else is an error
@@ -143,6 +153,17 @@ auto main (int, char **) -> int
 					break;
 				}
 			}
+
+			// authenticate ();
+			// authenticated = false;
+
+		} else if (auto i = inp.find ("search "); i == 0) // starts with 'search '
+		{
+			std::cout << "searching!" << std::endl;
+
+		} else 
+		{
+			std::cout << "not a valid command, type \"help\" for a list of available commands." << std::endl;
 		}
 	}
 

@@ -33,17 +33,6 @@ auto main (int, char **) -> int
 
 	auto logged = std::vector <std::string> {};
 
-
-	
-	
-
-	// setup ();
-
-
-
-
-
-
 	// process a clients message and return a response
 	auto callback = [&] (std::string incoming, std::string client_address) -> std::string
 	{
@@ -116,9 +105,6 @@ auto main (int, char **) -> int
 
 			if (password_ok) // correct username and password
 			{
-				// std::cout << "password ok!" << std::endl;
-
-
 				response.status_line.status_code = 200;
 				response.status_line.status_phrase = "OK";
 
@@ -131,26 +117,7 @@ auto main (int, char **) -> int
 
 				response.data = status.dump ();
 
-				
-				
-				// logged.push_back (client_address);
-				// cout << logged.size() << endl;
-
-				// logged_clients.push_back (client_address);
-
 				logged.push_back (client_address);
-
-				// std::cout << "logged:" << logged.size << std::endl;
-
-				// std::cout << "response:" << response << std::endl;
-
-
-				// remember client for future requests since its logged in (implement timeout?)
-				// logged_clients [client_address] = (*user) ["id"];
-				// logged_clients.push_back (client_address);
-				// cout << logged_clients.size () << endl;
-						// std::cout << "response:" << response << std::endl;
-
 
 			} else if (username_ok) // incorrect password
 			{
