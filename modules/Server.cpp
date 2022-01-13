@@ -67,10 +67,16 @@ inline auto sendall (int sock, char const* buf, int* len) -> int
 
 
 
+// export 
+// {
+// 	struct server 
+// 	{
+// 		server (auto port);
 
+// 	private:
 
-
-
+// 	};
+// }
 
 export inline auto serve (char const* port, auto&& callback) -> int
 {
@@ -122,6 +128,8 @@ export inline auto serve (char const* port, auto&& callback) -> int
 			perror("server: bind");
 			continue;
 		}
+
+
 		break;
 	}
 
@@ -137,17 +145,6 @@ export inline auto serve (char const* port, auto&& callback) -> int
 		exit(1);
 	}
 
-	struct sigaction sa
-	{
-		.sa_handler = sigchld_handler,
-		.sa_flags = SA_RESTART
-	};
-
-	if (sigaction(SIGCHLD, &sa, NULL) == -1)
-	{
-		perror("sigaction");
-		exit(1);
-	}
 	printf("server: waiting for connections...\n");
 
 	while (1)
@@ -163,12 +160,6 @@ export inline auto serve (char const* port, auto&& callback) -> int
 
 		inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), client_address, sizeof client_address);
 		printf("server: got connection from %s\n", client_address);
-
-		// if (!fork())
-		// {				   // this is the child process
-			// close(sockfd); // child doesn't need the listener
-
-						// cout << "received data from client" << endl;
 
 			if ((numbytes = recv (new_fd, buf, max_data_size-1, 0)) == -1) 
 			{ 
@@ -191,9 +182,6 @@ export inline auto serve (char const* port, auto&& callback) -> int
 				perror("send");
 			}
 
-			// close(new_fd);
-			// exit(0);
-		// }
 		close(new_fd); // parent doesn't need this
 	}
 

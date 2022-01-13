@@ -49,30 +49,39 @@ $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 ######## Client ###########
-$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@ $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm
+$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@
 
-$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm
+$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Http.pcm
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/server.o -o $@ $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Http.pcm
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/server.o -o $@
 
-$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Http.pcm
+$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 # $(info $$NAMES is [${NAMES}])
 
 
 ######## Modules ###########
-$(MODULES_DIR)/Client.pcm: $(SOURCES_DIR)/Client.cpp $(MODULES_DIR)/Http.pcm
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
+$(MODULES_DIR)/Messenger.pcm: $(SOURCES_DIR)/Messenger.cpp $(MODULES_DIR)/User.pcm $(MODULES_DIR)/Server.pcm $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm $(MODULES_DIR)/Common.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
-$(MODULES_DIR)/Server.pcm: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Http.pcm
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@
+$(MODULES_DIR)/Server.pcm: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm $(MODULES_DIR)/Common.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
-$(MODULES_DIR)/Http.pcm: $(SOURCES_DIR)/Http.cpp
+$(MODULES_DIR)/User.pcm: $(SOURCES_DIR)/User.cpp $(MODULES_DIR)/Client.pcm $(MODULES_DIR)/Http.pcm $(MODULES_DIR)/Common.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
+
+$(MODULES_DIR)/Client.pcm: $(SOURCES_DIR)/Client.cpp $(MODULES_DIR)/Http.pcm $(MODULES_DIR)/Common.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
+
+$(MODULES_DIR)/Http.pcm: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Common.pcm 
+	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
+
+$(MODULES_DIR)/Common.pcm: $(SOURCES_DIR)/Common.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@
 
 

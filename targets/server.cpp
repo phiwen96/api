@@ -1,17 +1,26 @@
 // server.cpp
 
-#include <nlohmann/json.hpp>
-// #include <signal.h>
 
-// using namespace std;
-using namespace nlohmann;
 
 import Server;
+import Common;
 // import Darwin;
 import Http;
 import std;
 
-using std::cout, std::endl, std::string;
+// using std::cout, std::endl, std::string;
+
+
+#include <nlohmann/json.hpp>
+using namespace nlohmann;
+
+
+
+
+
+
+
+
 
 auto main(int, char **) -> int
 {
@@ -21,7 +30,9 @@ auto main(int, char **) -> int
 	file_users >> users;
 	file_users.close();
 
-	auto logged = std::unordered_map<std::string, json *>{};
+	auto logged = std::unordered_map <std::string, json*> {};
+	
+	
 
 	// process a clients message and return a response
 	auto callback = [&](std::string incoming, std::string client_address) -> std::string

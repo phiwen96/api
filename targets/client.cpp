@@ -1,6 +1,7 @@
 import Client;
 import Http;
-import std;
+// import std;
+import Common;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -15,7 +16,7 @@ auto main(int, char **) -> int
 	std::string inp;
 
 	// cout << send ("127.0.0.1", "8080", "hello world") << endl;
-	auto user = json{};
+	auto user = nlohmann::json{};
 
 	auto register_user = [&]() -> bool // true if success (user is then logged in)
 	{
@@ -54,7 +55,7 @@ auto main(int, char **) -> int
 			return false;
 		}
 
-		auto status_json = json::parse(response->data);
+		auto status_json = nlohmann::json::parse(response->data);
 
 		auto status_code = status_json["status code"].get<int>();
 
@@ -114,7 +115,7 @@ auto main(int, char **) -> int
 			return false;
 		}
 
-		auto status_json = json::parse(response->data);
+		auto status_json = nlohmann::json::parse(response->data);
 
 		auto status_code = status_json["status code"].get<int>();
 
@@ -201,7 +202,7 @@ AUTH:
 				exit(1);
 			}
 
-			auto status_json = json::parse(response->data);
+			auto status_json = nlohmann::json::parse(response->data);
 
 			auto status_code = status_json["status code"].get<int>();
 
@@ -249,7 +250,7 @@ AUTH:
 				continue;
 			}
 
-			auto status_json = json::parse(response->data);
+			auto status_json = nlohmann::json::parse(response->data);
 
 			auto status_code = status_json["status code"].get<int>();
 
@@ -295,7 +296,7 @@ AUTH:
 				continue;
 			}
 
-			auto data_json = json::parse(response->data);
+			auto data_json = nlohmann::json::parse(response->data);
 
 			auto status_code = data_json["status code"].get<int>();
 

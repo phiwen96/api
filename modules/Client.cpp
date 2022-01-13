@@ -1,8 +1,19 @@
 export module Client;
-#include <signal.h>
 
-import Darwin;
-import std;
+export import Common;
+
+
+
+export template <typename T>
+concept Client = requires (T client)
+{
+	{client.ip_address ()} -> String;
+};
+
+export struct client 
+{
+	
+};
 
 // get sockaddr, IPv4 or IPv6:
 inline auto get_in_addr(sockaddr *sa) -> void *
@@ -38,6 +49,8 @@ inline auto sendall(int sock, char const *buf, int *len) -> int
 
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
+
+
 
 export inline auto send(char const *address, char const *port, std::string const& message) -> char const *
 {
