@@ -1,23 +1,10 @@
 #include <signal.h>
 
-
 export module Server;
 
-export import Darwin;
-import std;
+import Client;
+
 using std::cout, std::endl;
-
-
-
-// using std::cout, std::endl, std::string;
-// using namespace std;
-// using namespace nlohmann;
-
-
-// export 
-// {
-// 	std::vector <std::string> logged_clients {};
-// }
 
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
@@ -65,18 +52,6 @@ inline auto sendall (int sock, char const* buf, int* len) -> int
 	return n==-1?-1:0; // return -1 on failure, 0 on success
 }
 
-
-
-// export 
-// {
-// 	struct server 
-// 	{
-// 		server (auto port);
-
-// 	private:
-
-// 	};
-// }
 
 export inline auto serve (char const* port, auto&& callback) -> int
 {

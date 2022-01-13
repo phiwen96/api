@@ -24,6 +24,8 @@ using namespace nlohmann;
 
 auto main(int, char **) -> int
 {
+	
+
 	// read a JSON file filled with users
 	auto file_users = std::ifstream{"data/users.json"};
 	auto users = json{};
