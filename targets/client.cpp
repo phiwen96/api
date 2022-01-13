@@ -266,12 +266,54 @@ AUTH:
 				break;
 			}
 			}
-		}
-		else if (auto i = inp.find("search "); i == 0) // starts with 'search '
+		} else if (inp == "list")
+		{
+			auto request = http_request
+			{
+				.request_line =
+				{
+					.request_type = "GET",
+					.version = 1.0,
+					.url = "/list"
+				},
+
+				.headers =
+				{
+					{"Content-Type", "application/json; charset-UTF-8"}
+				},
+
+				.data = user.dump()
+			};
+
+			auto from_server = send(SERVER_ADDRESS, PORT, to_string(request));
+			auto response = http_response::parse(from_server);
+
+			if (not response) // Cannot interpret response from client
+			{
+				std::cout << "error, cant interpret response from server, exiting..." << std::endl;
+				// exit(1);
+				continue;
+			}
+
+			auto data_json = json::parse(response->data);
+
+			auto status_code = data_json["status code"].get<int>();
+
+			switch (status_code)
+			{
+			case 1: // success
+				std::cout << data_json ["users"].dump (4) << std::endl << "online >> ";
+				break;
+			
+			default:
+				std::cout << data_json ["status message"] << std::endl << "online >> ";
+				break;
+			}
+
+		} else if (auto i = inp.find("search "); i == 0) // starts with 'search '
 		{
 			std::cout << "searching!" << std::endl;
-		}
-		else
+		} else
 		{
 			std::cout << "not a valid command, type \"help\" for a list of available commands." << std::endl;
 		}

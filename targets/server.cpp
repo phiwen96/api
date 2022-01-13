@@ -253,19 +253,33 @@ auto main(int, char **) -> int
 		{
 			if (is_logged () != logged.end ()) // logged in
 			{
-				auto users_view = json {};
+				auto && users_view = json {};
 
 				for (auto const& u : users)
 				{
-					auto view = json
+					auto && view = json
 					{
 						{"username", u ["username"]},
 						{"name", u ["name"]},
 						{"email", u ["email"]}
 					};	
 
-					users_view.push_back (view);
+					users_view.push_back (std::move (view));
 				}
+
+				// prepare response message
+				response.status_line.status_code = 200;
+				response.status_line.status_phrase = "OK";
+
+				auto status = json
+				{
+					{"success", true},
+					{"status code", 1},
+					{"status message", "Success"},
+					{"users", std::move (users_view)}
+				};
+
+				response.data = status.dump();
 			}
 		}
 	
