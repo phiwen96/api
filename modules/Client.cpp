@@ -3,7 +3,13 @@ export module Client;
 export import Common;
 
 
-
+/*
+	A "Client" is a host with an ip_address.
+	This ip_address may be of interest for 
+	a "Server" for communication but also
+	for saving authenticated hosts for
+	future services.
+*/
 export template <typename T>
 concept Client = requires (T client)
 {
@@ -12,8 +18,38 @@ concept Client = requires (T client)
 
 export struct client 
 {
+	// constructor
+	client (String auto&& ip_address) : _ip_address {(std::string&&) ip_address}
+	{
+
+	}
+
+	// copy constructor
+	client (client const& other) : _ip_address {other._ip_address}
+	{
+
+	}
+
+	// move constructor
+	client (client&& other) : _ip_address {std::move (other._ip_address)}
+	{
+
+	}
+
+
+	auto ip_address () const noexcept -> String auto const&
+	{
+		return _ip_address;
+	}
 	
+private:
+	std::string _ip_address;	
 };
+
+/*
+	make sure client struct adheres to Client interface
+*/
+static_assert (Client <client>);
 
 // get sockaddr, IPv4 or IPv6:
 inline auto get_in_addr(sockaddr *sa) -> void *

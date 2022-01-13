@@ -2,7 +2,32 @@
 
 export module Server;
 
-import Client;
+export import Client;
+export import Messenger;
+import Common;
+
+
+export 
+{
+	template <typename T>
+	concept Server = requires ()
+	{
+		true;
+	};
+
+	template <typename T>
+	requires Messenger <T>
+	struct server 
+	{
+		server (String auto&& port, T&& messenger);
+		
+		
+		T _messenger;
+	};
+}
+
+
+
 
 using std::cout, std::endl;
 
