@@ -36,7 +36,7 @@ export struct client
 
 	}
 
-
+	// returns clients ip address
 	auto ip_address () const noexcept -> String auto const&
 	{
 		return _ip_address;

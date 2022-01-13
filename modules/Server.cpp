@@ -9,10 +9,33 @@ import Common;
 
 export 
 {
-	template <typename T>
-	concept Server = requires ()
+	/*
+		A "Server" should be able to listen to a specific port
+		and handle connections and communications with clients.
+		It doesn't really care for the actual messages sent 
+		back and forth, it focuses more on the networking fancy stuff.
+		Therefore, it must be initialized with a "Messenger" object
+		which can focus on the communications.
+		
+		For an ease of abstractions, it must be initialized with
+		a front-end for 
+
+		It basically processes every connection the server gets.
+	*/
+
+	template <typename server>
+	concept Server = requires (server s)
 	{
-		true;
+		server 
+		{
+			[](String auto const&) -> String auto&&
+			{
+				return "hello from server";
+			}
+		};
+
+		s.run();
+		s.stop();
 	};
 
 	template <typename T>
@@ -20,7 +43,7 @@ export
 	struct server 
 	{
 		server (String auto&& port, T&& messenger);
-		
+
 		
 		T _messenger;
 	};
