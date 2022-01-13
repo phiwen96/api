@@ -6,7 +6,6 @@
 // #include <signal.h>
 
 
-// using std::cout, std::endl, std::string;
 // using namespace std;
 using namespace nlohmann;
 
@@ -15,6 +14,7 @@ import Server;
 import Http;
 import std;
 
+using std::cout, std::endl, std::string;
 
 
 
@@ -62,6 +62,32 @@ auto main (int, char **) -> int
 			}
 
 			return nullptr;
+		};
+
+		auto is_logged = [&] () -> bool // true if client is logged in, if false it fills necessary response
+		{
+			auto i = std::find (logged.begin(), logged.end(), client_address);
+
+			if (i == logged.end ()) // not logged, fill response and return false
+			{
+				response.status_line.status_code = 403;
+				response.status_line.status_phrase = "Forbidden";
+
+				auto status = json 
+				{
+					{"success", false},
+					{"status code", 6},
+					{"status message", "Request denied, client not logged in"}
+				};
+				
+				response.data = status.dump ();
+
+				return false;
+
+			} else 
+			{
+				return true;
+			}
 		};
 
 		if (not request) // Error in request, return bad call kind of resonse.
@@ -154,12 +180,7 @@ auto main (int, char **) -> int
 		} else if (method == "/logout") // client wants to logout
 		{
 			// check if user is logged in
-
-		
-
-			auto i = std::find (logged.begin(), logged.end(), client_address);
-
-			if (i != logged.end ()) // OK
+			if (is_logged ()) // OK
 			{	
 				logged.erase (i); // remove from logged users
 
@@ -175,25 +196,46 @@ auto main (int, char **) -> int
 				};
 				
 				response.data = status.dump ();
-
-			} else // user not even logged in
-			{				
-				response.status_line.status_code = 403;
-				response.status_line.status_phrase = "Forbidden";
-
-				auto status = json 
-				{
-					{"success", false},
-					{"status code", 6},
-					{"status message", "Request denied, client not logged in"}
-				};
-				
-				response.data = status.dump ();
 			} 
-
 		} else if (method == "/register") // client wants to register new user
 		{
-			
+			if (is_logged ())
+			{
+				auto client_info = json::parse (request -> data); // parse clients user data
+
+				if (get_user (client_info ["username"])) // username already exists
+				{
+					response.status_line.status_code = 403;
+					response.status_line.status_phrase = "Forbidden"; 
+
+					auto status = json 
+					{
+						{"success", false},
+						{"status code", 7},
+						{"status message", "Registration declined, username already exists"}
+					};
+
+					response.data = status.dump ();
+
+				} else // add user, logg client address
+				{
+					users += client_info;
+
+					logged.push_back (client_address);
+
+					response.status_line.status_code = 200;
+					response.status_line.status_phrase = "OK"; 
+
+					auto status = json 
+					{
+						{"success", true},
+						{"status code", 1},
+						{"status message", "Success"}
+					};
+
+					response.data = status.dump ();
+				}
+			}
 		} 
 
 		return to_string (response);
