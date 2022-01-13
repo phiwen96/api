@@ -58,6 +58,19 @@ auto main(int, char **) -> int
 
 		auto status_code = status_json["status code"].get<int>();
 
+		switch (status_code)
+		{
+			case 1: // success 
+			{
+				return true;
+			}
+
+			case 7: // username already taken
+			{
+
+			}
+		}
+
 		if (status_code == 1)
 		{
 			return true;
@@ -140,6 +153,7 @@ auto main(int, char **) -> int
 
 		case 5: // incorrect password
 		{
+			std::cout << "incorrect password, ";
 			return false;
 		}
 		}
