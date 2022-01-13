@@ -15,20 +15,16 @@ export
 		It doesn't really care for the actual messages sent 
 		back and forth, it focuses more on the networking fancy stuff.
 		Therefore, it must be initialized with a "Messenger" object
-		which can focus on the communications.
-		
-		For an ease of abstractions, it must be initialized with
-		a front-end for 
-
-		It basically processes every connection the server gets.
+		which can take care on the gossip part.
+		You should also be able to "start()" and "stop()" a "Server".
 	*/
 
 	template <typename server>
 	concept Server = requires (server s)
 	{
 		server 
-		{
-			[](String auto const&) -> String auto&&
+		{	
+			[](String auto const&) -> String auto&& 
 			{
 				return "hello from server";
 			}
