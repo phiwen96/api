@@ -11,39 +11,20 @@ export import Common;
 	future services.
 */
 export template <typename T>
-concept Client = requires (T client)
+concept Client = requires (T const client)
 {
 	{client.ip_address ()} -> String;
 };
 
 export struct client 
 {
-	// constructor
-	client (String auto&& ip_address) : _ip_address {(std::string&&) ip_address}
-	{
-
-	}
-
-	// copy constructor
-	client (client const& other) : _ip_address {other._ip_address}
-	{
-
-	}
-
-	// move constructor
-	client (client&& other) : _ip_address {std::move (other._ip_address)}
-	{
-
-	}
-
 	// returns clients ip address
 	auto ip_address () const noexcept -> String auto const&
 	{
-		return _ip_address;
+		return ip_addr;
 	}
 	
-private:
-	std::string _ip_address;	
+	char ip_addr [INET6_ADDRSTRLEN];	
 };
 
 /*

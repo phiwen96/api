@@ -5,10 +5,14 @@
 import Server;
 import Common;
 // import Darwin;
+import Messenger;
+import Usr;
+import Server;
 import Http;
 import std;
 
-// using std::cout, std::endl, std::string;
+
+using std::cout, std::endl, std::move;
 
 
 #include <nlohmann/json.hpp>
@@ -24,7 +28,7 @@ using namespace nlohmann;
 
 auto main(int, char **) -> int
 {
-	
+
 
 	// read a JSON file filled with users
 	auto file_users = std::ifstream{"data/users.json"};
@@ -37,7 +41,47 @@ auto main(int, char **) -> int
 	
 
 	// process a clients message and return a response
-	auto callback = [&](std::string incoming, std::string client_address) -> std::string
+	Messenger auto m = [&](String auto&& in, Client auto&& cl) -> String auto&&
+	{
+		return "hej";
+	};
+
+	Server auto s = make_server (move (m));
+
+
+
+	// auto s = make_server (m);
+
+	// s.start ();
+
+
+	// auto s = server {std::move (m), "8080"};
+// serve("8080", callback);
+return 0;
+}
+
+// "HTTP/1.1 200 OK\r\n"
+// "Server: ph"
+// "Content-Type: text/html; charset=UTF-8\r\n"
+// "Content-Length: 200\r\n\r\n"
+
+// 			   "<!DOCTYPE html>\r\n"
+// 			   "<html><head><title>Testing</title></head>\r\n"
+// 			   "<body><p>Testing</p></body><html>\r\n";
+
+// GET / HTTP/1.1
+// Host: 127.0.0.1:8080
+// Upgrade-Insecure-Requests: 1
+// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+// User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15
+// Accept-Language: en-GB,en;q=0.9
+// Accept-Encoding: gzip, deflate
+// Connection: keep-alive
+
+
+
+/*
+Messenger auto m = [&](client cl, std::string incoming) -> std::string
 	{
 		auto response = http_response{
 			.status_line =
@@ -65,7 +109,7 @@ auto main(int, char **) -> int
 
 		auto is_logged = [&]() -> auto // returns an iterator to logged client if logged, if false it fills necessary response and returns sentinel
 		{
-			auto i = logged.find(client_address);
+			auto i = logged.find(cl.ip_address());
 			// auto i = std::find (logged.begin(), logged.end(), client_address);
 
 			if (i == logged.end()) // not logged, fill response and return false
@@ -132,7 +176,7 @@ auto main(int, char **) -> int
 
 				response.data = status.dump();
 
-				logged[client_address] = user;
+				logged[cl.ip_address()] = user;
 			}
 			else if (username_ok) // incorrect password
 			{
@@ -203,7 +247,7 @@ auto main(int, char **) -> int
 				// users += client_info;
 				users.push_back(client_info);
 
-				logged[client_address] = &users.back();
+				logged[cl.ip_address()] = &users.back();
 
 				response.status_line.status_code = 200;
 				response.status_line.status_phrase = "OK";
@@ -299,26 +343,4 @@ auto main(int, char **) -> int
 
 		return to_string(response);
 	};
-
-
-serve("8080", callback);
-return 0;
-}
-
-// "HTTP/1.1 200 OK\r\n"
-// "Server: ph"
-// "Content-Type: text/html; charset=UTF-8\r\n"
-// "Content-Length: 200\r\n\r\n"
-
-// 			   "<!DOCTYPE html>\r\n"
-// 			   "<html><head><title>Testing</title></head>\r\n"
-// 			   "<body><p>Testing</p></body><html>\r\n";
-
-// GET / HTTP/1.1
-// Host: 127.0.0.1:8080
-// Upgrade-Insecure-Requests: 1
-// Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
-// User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.1 Safari/605.1.15
-// Accept-Language: en-GB,en;q=0.9
-// Accept-Encoding: gzip, deflate
-// Connection: keep-alive
+*/

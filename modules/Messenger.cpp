@@ -14,7 +14,7 @@ using namespace std;
 */
 
 export template <typename T>
-concept Messenger = requires (T messenger, string in_message, client new_client)
+concept Messenger = requires (T& messenger, string&& in_message, client&& new_client)
 {	
-	messenger (new_client, in_message) -> String;
+	{messenger (std::move (in_message), std::move (new_client))} -> String; 
 };
