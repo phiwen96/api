@@ -48,6 +48,8 @@ auto main(int, char **) -> int
 
 	Server auto s = make_server (move (m));
 
+	cout << s.port() << endl;
+
 
 
 	// auto s = make_server (m);

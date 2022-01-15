@@ -207,17 +207,42 @@ export
 		requires Messenger<T>
 	struct server2
 	{
-		server2(T&& msg) : msg {fwd (msg)}
+		server2(T&& msg) : _messenger {fwd (msg)}
 		{
-			_sock = socket (PF_INET, SOCK_STREAM, 0);
+			if ((_sockid = socket (PF_INET, SOCK_STREAM, 0)) == -1)
+			{
+				perror ("socket error");
+			}
+
+			if (bind (_sockid, (struct sockaddr*) &_addrport, sizeof (_addrport)) == -1)
+			{
+				perror ("bind error");
+			}
 		}
 
-		
+		auto start () 
+		{
 
+		}	
 
+		auto stop ()
+		{
 
-		int _sock;
-		T msg;
+		}	
+
+		auto port () const -> String auto const&
+		{
+			return _addrport.sin_port;
+		}
+
+		int _sockid;
+		sockaddr_in _addrport
+		{
+			.sin_family = AF_INET,
+			.sin_port = htons (INADDR_ANY),
+			.sin_addr.s_addr = htonl (INADDR_ANY)
+		};
+		T _messenger;
 	};
 
 	template <typename T>
