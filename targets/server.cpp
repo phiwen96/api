@@ -48,7 +48,7 @@ auto main(int, char **) -> int
 
 	Server auto s = make_server (move (m));
 
-	cout << s.port() << endl;
+	s.start ();
 
 
 

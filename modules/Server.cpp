@@ -22,10 +22,12 @@ export
 	*/
 
 	template <typename server>
-	concept Server = requires(server s)
+	concept Server = requires(server&& s)
 	{
 		s.start();
 		s.stop();
+
+		std::move (s);
 	};
 
 
@@ -220,9 +222,15 @@ export
 			}
 		}
 
+		server2(server2&&) = default;
+		server2(server2 const&) = default;
+
 		auto start () 
 		{
-
+			if (listen (_sockid, 5) == -1)
+			{
+				perror ("listen error");
+			}
 		}	
 
 		auto stop ()
@@ -246,9 +254,9 @@ export
 	};
 
 	template <typename T>
-	auto make_server (T&& msg) -> auto
+	auto make_server (T&& msg) -> Server auto&&
 	{
-		return server2 <T> {fwd (msg)};
+		return std::move (server2 <T> {fwd (msg)});
 	}
 }
 
