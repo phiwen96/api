@@ -231,7 +231,27 @@ export
 			if (listen (_sockid, 5) == -1)
 			{
 				perror ("listen error");
+				throw;
 			}
+
+			auto client_addr = sockaddr_in 
+			{
+
+			};
+
+			unsigned int client_length = sizeof (client_addr);
+
+			auto client_sockid = accept (_sockid, (struct sockaddr*) &client_addr, &client_length);
+
+			if (client_sockid == -1)
+			{
+				perror ("accept error");
+				throw;
+			}
+
+			std::cout << "Got connection!" << std::endl;
+
+
 		}	
 
 		auto stop ()

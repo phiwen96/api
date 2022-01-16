@@ -30,13 +30,7 @@ auto main(int, char **) -> int
 {
 
 
-	// read a JSON file filled with users
-	auto file_users = std::ifstream{"data/users.json"};
-	auto users = json{};
-	file_users >> users;
-	file_users.close();
-
-	auto logged = std::unordered_map <std::string, json*> {};
+	
 	
 	
 
@@ -83,6 +77,13 @@ return 0;
 
 
 /*
+auto file_users = std::ifstream{"data/users.json"};
+auto users = json{};
+file_users >> users;
+file_users.close();
+
+auto logged = std::unordered_map <std::string, json*> {};
+
 Messenger auto m = [&](client cl, std::string incoming) -> std::string
 	{
 		auto response = http_response{

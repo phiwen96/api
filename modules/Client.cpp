@@ -18,6 +18,12 @@ concept Client = requires (T const client)
 
 export struct client 
 {
+	client(client&&) = default;
+	client(client const&) = default;
+	client ()
+	{
+		
+	}
 	// returns clients ip address
 	auto ip_address () const noexcept -> String auto const&
 	{
