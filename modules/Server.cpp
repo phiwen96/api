@@ -209,6 +209,8 @@ export
 		requires Messenger<T>
 	struct server2
 	{
+		server2(server2&&) = default;
+		server2(server2 const&) = default;
 		server2(T&& msg) : _messenger {fwd (msg)}
 		{
 			if ((_sockid = socket (PF_INET, SOCK_STREAM, 0)) == -1)
@@ -222,8 +224,7 @@ export
 			}
 		}
 
-		server2(server2&&) = default;
-		server2(server2 const&) = default;
+		
 
 		auto start () 
 		{
