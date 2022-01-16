@@ -13,7 +13,8 @@ using std::cout, std::cin, std::endl, std::string;
 
 auto main(int, char **) -> int
 {
-	
+	Client auto c = client {};
+	c.call ();
 
 	return 0;
 }

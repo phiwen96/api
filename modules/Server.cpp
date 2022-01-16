@@ -216,23 +216,36 @@ export
 			if ((_sockid = socket (PF_INET, SOCK_STREAM, 0)) == -1)
 			{
 				perror ("socket error");
+				throw;
 			}
 
 			if (bind (_sockid, (struct sockaddr*) &_addrport, sizeof (_addrport)) == -1)
 			{
+				throw;
 				perror ("bind error");
 			}
+
+			if (listen (_sockid, 5) == -1)
+			{
+				perror ("listen error");
+				throw;
+			}
+
+			struct sockadd_in inf;
+			unsigned int len = sizeof (inf);
+			if (getsockname (_sockid, (struct sockaddr*) &inf, &len) == -1)
+			{
+				perror ("getsockname error");
+				throw;
+			}
+			printf("port number %d\n", ntohs(inf.sin_port));
 		}
 
 		
 
 		auto start () 
 		{
-			if (listen (_sockid, 5) == -1)
-			{
-				perror ("listen error");
-				throw;
-			}
+			
 
 			auto client_addr = sockaddr_in 
 			{
