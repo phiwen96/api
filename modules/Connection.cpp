@@ -32,9 +32,9 @@ export
 			buf[numbytes] = '\0';
 			return std::move (std::string {buf});
 		}
-		void write(auto &&src)
+		void write(std::string&& src)
 		{
-			if (sendall(_sockid, src, std::move(src)) == -1)
+			if (sendall(_sockid, src.c_str(), src.size()) == -1)
 			{
 				perror("sendall error");
 				throw;

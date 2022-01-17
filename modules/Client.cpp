@@ -1,75 +1,76 @@
 export module Client;
 
 export import Common;
-
+export import Connection;
 
 /*
 	A "Client" is a host with an ip_address.
-	This ip_address may be of interest for 
+	This ip_address may be of interest for
 	a "Server" for communication but also
 	for saving authenticated hosts for
 	future services.
 */
 export template <typename T>
-concept Client = requires (T const client)
+concept Client = requires(T const client)
 {
-	{client.ip_address ()} -> String;
+	{
+		client.ip_address()
+		} -> String;
 };
 
-export struct client 
+export struct client
 {
-	client(client&&) = default;
-	client(client const&) = default;
-	client (std::string&& remoteIP, int remotePort)
+	client(client &&) = default;
+	client(client const &) = default;
+	client()
 	{
-		_addrport.sin_port = htons (remotePort);
-		_addrport.sin_addr.s_addr = inet_addr (remoteIP.c_str());
-		
-		if ((_sockid = socket (PF_INET, SOCK_STREAM, 0)) == -1)
+		if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
 		{
-			perror ("socket error");
+			perror("socket error");
 			throw;
 		}
 	}
 
-	auto call (char const* msg)
+	auto connect(std::string &&remoteIP, int remotePort) -> connection &&
 	{
-		if (connect (_sockid, (struct sockaddr*) &_addrport, sizeof (_addrport)) == -1)
+		sockaddr_in remote{
+			.sin_family = AF_UNSPEC,
+			.sin_port = htons(remotePort),
+			.sin_addr.s_addr = inet_addr(remoteIP.c_str())};
+
+		if (::connect(_sockid, (struct sockaddr *)&remote, sizeof(remote)) == -1)
 		{
-			perror ("connect error");
+			perror("connect error");
 			throw;
 		}
 
-		auto sent_bytes = send (_sockid, msg, strlen (msg), 0);
+		auto &&serv_connection = connection{std::move (remoteIP), remotePort};
 
-		if (sent_bytes == -1)
-		{
-			perror ("send error");
-			throw;
-		}
+		return std::move (serv_connection);
+	}
 
-
+	auto start()
+	{
 	}
 	// returns clients ip address
-	auto ip_address () const noexcept -> String auto const&
+	auto ip_address() const noexcept -> String auto const &
 	{
 		return ip_addr;
 	}
-	
-	char ip_addr [INET6_ADDRSTRLEN];
+
+	char ip_addr[INET6_ADDRSTRLEN];
 	int _sockid;
-	sockaddr_in _addrport
-	{
+	sockaddr_in _addrport{
 		.sin_family = AF_UNSPEC
 		// .sin_port = htons (52162),
 		// .sin_addr.s_addr = htonl (INADDR_ANY)
-	};	
+	};
 };
 
 /*
 	make sure client struct adheres to Client interface
 */
-static_assert (Client <client>);
+static_assert(Client<client>);
 
 inline auto sendall(int sock, char const *buf, int *len) -> int
 {
@@ -96,9 +97,7 @@ inline auto sendall(int sock, char const *buf, int *len) -> int
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
 
-
-
-export inline auto send(char const *address, char const *port, std::string const& message) -> char const *
+export inline auto send(char const *address, char const *port, std::string const &message) -> char const *
 {
 	int sockfd, numbytes;
 	char buf[max_data_size];
@@ -143,7 +142,7 @@ export inline auto send(char const *address, char const *port, std::string const
 
 	int len = message.size();
 
-	if (sendall(sockfd, message.c_str (), &len) == -1)
+	if (sendall(sockfd, message.c_str(), &len) == -1)
 	{
 		perror("send");
 	}
@@ -162,5 +161,3 @@ export inline auto send(char const *address, char const *port, std::string const
 
 	return response;
 }
-
-

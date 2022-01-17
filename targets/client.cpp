@@ -2,6 +2,7 @@ import Client;
 import Http;
 // import std;
 import Common;
+import Connection;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -12,19 +13,31 @@ using std::cout, std::cin, std::endl, std::string;
 
 auto main (int argc, char ** argv) -> int
 {	
-	struct {
-		std::string ip_address;
-		int port;
-	} remote;
+	// struct {
+	// 	std::string ip_address;
+	// 	int port;
+	// } remote;
 
-	remote.ip_address = argv [1];
-	remote.port = atoi (argv [2]);
+	// remote.ip_address = argv [1];
+	// remote.port = atoi (argv [2]);
 
-	Client auto c = client 
+	auto&& m = [](connection&& serv)
 	{
-		std::move (remote.ip_address),
-		remote.port
+		String auto&& request = serv.read();
+		cout << request << endl;
 	};
+
+	Client auto cl = client {};
+
+	auto conn =  cl.connect (std::move (remote.ip_address), remote.port); 
+
+	conn.write ("hello from client");
+
+	cout << "tjo" << endl;
+
+	
+
+	// cout << ""
 
 	// c.call ("hej");
 

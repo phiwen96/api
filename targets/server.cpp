@@ -25,7 +25,7 @@ auto main (int argc, char ** argv) -> int
 	// process a clients message and return a response
 	auto&& m = [](connection&& c)
 	{
-		cout << c << endl;
+		cout << "new connection from " << c << endl;
 		String auto&& request = c.read();
 		cout << request << endl;
 	};
