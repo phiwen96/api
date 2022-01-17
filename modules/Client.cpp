@@ -20,10 +20,11 @@ export struct client
 {
 	client(client&&) = default;
 	client(client const&) = default;
-	client (int port)
+	client (std::string&& remoteIP, int remotePort)
 	{
-		_addrport.sin_port = htons (port);
-
+		_addrport.sin_port = htons (remotePort);
+		_addrport.sin_addr.s_addr = inet_addr (remoteIP.c_str());
+		
 		if ((_sockid = socket (PF_INET, SOCK_STREAM, 0)) == -1)
 		{
 			perror ("socket error");
@@ -59,9 +60,9 @@ export struct client
 	int _sockid;
 	sockaddr_in _addrport
 	{
-		.sin_family = AF_INET,
+		.sin_family = AF_UNSPEC
 		// .sin_port = htons (52162),
-		.sin_addr.s_addr = htonl (INADDR_ANY)
+		// .sin_addr.s_addr = htonl (INADDR_ANY)
 	};	
 };
 

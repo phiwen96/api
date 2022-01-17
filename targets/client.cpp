@@ -10,13 +10,23 @@ using std::cout, std::cin, std::endl, std::string;
 
 
 
-auto main (int, char ** args) -> int
+auto main (int argc, char ** argv) -> int
 {	
-	auto port = atoi (args [1]);
+	struct {
+		std::string ip_address;
+		int port;
+	} remote;
 
-	Client auto c = client {port};
-	
-	c.call ("hej");
+	remote.ip_address = argv [1];
+	remote.port = atoi (argv [2]);
+
+	Client auto c = client 
+	{
+		std::move (remote.ip_address),
+		remote.port
+	};
+
+	// c.call ("hej");
 
 
 

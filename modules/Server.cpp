@@ -34,7 +34,6 @@ export
 	};
 
 	template <typename T>
-	requires Messenger<T>
 	struct server
 	{
 		server(server &&) = default;
@@ -65,14 +64,6 @@ export
 
 		auto start()
 		{
-			struct
-			{
-				sockaddr_storage addr;
-				unsigned int len = sizeof(addr);
-				int sockid;
-				char ip_address[INET6_ADDRSTRLEN];
-			} remote;
-
 			auto polls = std::array<pollfd, 1>{
 				pollfd{
 					.fd = _sockid,
@@ -87,9 +78,16 @@ export
 					throw;
 				}
 
-				// if server socketready to read
+				// if server socket is ready for read
 				if (polls[0].revents & POLLIN)
 				{
+					struct
+					{
+						sockaddr_storage addr;
+						unsigned int len = sizeof(addr);
+						int sockid;
+						char ip_address[INET6_ADDRSTRLEN];
+					} remote;
 					// std::cout << "got connection!" << std::endl;
 
 					// get remote socket
@@ -98,13 +96,20 @@ export
 						perror("accept error");
 						throw;
 					}
-
 					// get remote ip address
 					inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof(remote.ip_address));
+
+					auto&& new_connection = connection 
+					{
+						remote.ip_address,
+						remote.sockid
+					};
+					
+					std::thread {[&]{_messenger (std::move (new_connection));}}.detach();
+					
+					// std::cout << c << std::endl;
 				}
 			}
-
-			
 
 			// auto&& c = caller {_sockid};
 
@@ -115,6 +120,7 @@ export
 
 		auto stop()
 		{
+			_running = false;
 		}
 
 		auto port() const

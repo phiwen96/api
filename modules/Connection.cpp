@@ -18,22 +18,32 @@ export
 		}
 		connection(connection &&) = default;
 		connection(connection const &) = default;
-		
-		auto read(auto &dst)
+
+		auto read() -> String auto&&
 		{
-			if (recv(_sockid, &dst, sizeof (dst)) == -1)
+			auto len = getpagesize();
+			char buf [len];
+			int numbytes;
+			if ((numbytes = recv(_sockid, buf, len - 1, 0)) == -1)
 			{
 				perror("recv error");
 				throw;
 			}
+			buf[numbytes] = '\0';
+			return std::move (std::string {buf});
 		}
-		auto write(auto &&src)
+		void write(auto &&src)
 		{
 			if (sendall(_sockid, src, std::move(src)) == -1)
 			{
 				perror("sendall error");
 				throw;
 			}
+		}
+		friend auto& operator << (std::ostream& os, connection const& me)
+		{
+			os << "remoteIP >> " << me._ip_address;
+			return os;
 		}
 
 	private:

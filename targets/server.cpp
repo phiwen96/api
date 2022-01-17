@@ -23,9 +23,11 @@ auto main (int argc, char ** argv) -> int
 	
 
 	// process a clients message and return a response
-	Messenger auto m = [&](String auto &&in, Client auto &&cl) -> String auto &&
+	auto&& m = [](connection&& c)
 	{
-		return "hej";
+		cout << c << endl;
+		String auto&& request = c.read();
+		cout << request << endl;
 	};
 
 	Server auto s = make_server(move(m));
