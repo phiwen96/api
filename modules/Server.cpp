@@ -83,6 +83,10 @@ export
 				}
 			};
 
+
+
+
+
 			// wait for server socket to be written to
 			if (poll (polls.data(), 1, -1) == -1)
 			{
@@ -104,8 +108,12 @@ export
 
 				// get remote ip address
 				inet_ntop (remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof (remote.ip_address));
-
 				
+				std::thread
+				{
+					
+				}.detach ();
+				// _messenger ()
 			}
 
 
@@ -136,6 +144,8 @@ export
 			return ntohs (inf.sin_port);
 		}
 
+
+
 		
 
 	private:
@@ -147,6 +157,7 @@ export
 			.sin_addr.s_addr = htonl (INADDR_ANY)
 		};
 		int _sockid;
+		bool _running;
 	};
 
 	template <typename T>
