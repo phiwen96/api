@@ -14,8 +14,13 @@ using std::cout, std::endl, std::move;
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
-auto main(int, char **) -> int
+#define EAT(...) 
+
+auto main (int argc, char ** argv) -> int
 {
+	auto i = nr_of_threads ();
+
+	
 
 	// process a clients message and return a response
 	Messenger auto m = [&](String auto &&in, Client auto &&cl) -> String auto &&
@@ -25,7 +30,7 @@ auto main(int, char **) -> int
 
 	Server auto s = make_server(move(m));
 
-	
+
 	
 	cout << "connect through port " << s.port () << endl;
 

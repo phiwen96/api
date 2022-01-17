@@ -1,6 +1,10 @@
+#include <poll.h>
+#include <fcntl.h>
+
 export module Caller;
 
 import Common;
+
 
 export 
 {
@@ -29,6 +33,28 @@ export
 				sockaddr_storage addr;
 				unsigned int len = sizeof (addr);
 			} detail;
+
+		
+			auto polls = std::array <pollfd, 2> 
+			{
+				pollfd {
+					.fd = servsockid,
+					.events = POLLIN
+				}, 
+
+				pollfd {
+					.fd = 0, // Standard input
+					.events = POLLIN
+				}
+			};
+
+			// if ()
+
+			poll (polls.data(), 2, NULL);
+
+
+
+
 
 			if ((_sockid = accept (servsockid, (struct sockaddr*) &detail.addr, &detail.len)) == -1)
 			{

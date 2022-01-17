@@ -27,4 +27,9 @@ export
 
 		return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 	}
+
+	inline auto nr_of_threads () noexcept -> auto
+	{
+		return std::thread::hardware_concurrency();
+	}
 }

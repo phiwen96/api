@@ -1,4 +1,6 @@
 #include <signal.h>
+#include <poll.h>
+#include <fcntl.h>
 
 export module Server;
 
@@ -6,6 +8,7 @@ export import Client;
 export import Messenger;
 export import Common;
 export import Caller;
+export import Connection;
 
 #define fwd(x) std::forward<decltype(x)>(x)
 
@@ -46,6 +49,9 @@ export
 				throw;
 			}
 
+			// set socket to non-blocking (for async)
+			fcntl (_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+
 			if (bind (_sockid, (struct sockaddr*) &_addrport, sizeof (_addrport)) == -1)
 			{
 				throw;
@@ -61,8 +67,53 @@ export
 
 		auto start () 
 		{
-			auto&& c = caller {_sockid};
+			struct {
+				sockaddr_storage addr;
+				unsigned int len = sizeof (addr);
+				int sockid;
+				char ip_address [INET6_ADDRSTRLEN];
+			} remote;
 
+		
+			auto polls = std::array <pollfd, 1> 
+			{
+				pollfd {
+					.fd = _sockid,
+					.events = POLLIN
+				}
+			};
+
+			// wait for server socket to be written to
+			if (poll (polls.data(), 1, -1) == -1)
+			{
+				perror ("poll error");
+				throw;
+			}
+
+			// if server socketready to read
+			if (polls [0].revents & POLLIN) 
+			{
+				// std::cout << "got connection!" << std::endl;
+
+				// get remote socket
+				if ((remote.sockid = accept (_sockid, (struct sockaddr*) &remote.addr, &remote.len)) == -1)
+				{
+					perror ("accept error");
+					throw;
+				}
+
+				// get remote ip address
+				inet_ntop (remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof (remote.ip_address));
+
+				
+			}
+
+
+			
+			
+
+			// auto&& c = caller {_sockid};
+			
 			// auto buffer = std::array <>
 
 			// auto received_bytes = recv (c.get_socket (), )
@@ -91,7 +142,7 @@ export
 		T _messenger;
 		sockaddr_in _addrport
 		{
-			.sin_family = AF_INET,
+			.sin_family = AF_UNSPEC,
 			.sin_port = htons (INADDR_ANY),
 			.sin_addr.s_addr = htonl (INADDR_ANY)
 		};
