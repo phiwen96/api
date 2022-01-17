@@ -59,37 +59,14 @@ export
 			}
 		}
 
-		
-
 		auto start () 
 		{
-			struct {
-				sockaddr_in addr;
-				unsigned int len = sizeof (addr);
-				int sockid;
-			} call;
+			auto&& c = caller {_sockid};
 
-			if ((call.sockid = accept (_sockid, (struct sockaddr*) &call.addr, &call.len)) == -1)
-			{
-				perror ("accept error");
-				throw;
-			}
+			// auto buffer = std::array <>
 
-			if (getpeername (call.sockid, (struct sockaddr*) &call.addr, &call.len) == -1)
-			{
-				perror ("getpeername error");
-				throw;
-			}
-
-
-
-			auto c = caller 
-			{
-				.sockid = call.sockid
-			};
-
-			inet_ntop (call.addr.ss_family, get_in_addr((struct sockaddr *)&call.addr), c.ip_address, sizeof (c.ip_address));
-		}	
+			// auto received_bytes = recv (c.get_socket (), )
+		}
 
 		auto stop ()
 		{
@@ -111,18 +88,6 @@ export
 		
 
 	private:
-	// get sockaddr, IPv4 or IPv6
-	auto get_in_addr(sockaddr *sa) -> void *
-	{
-		if (sa->sa_family == AF_INET)
-		{
-			return &(((struct sockaddr_in *)sa)->sin_addr);
-		}
-
-		return &(((struct sockaddr_in6 *)sa)->sin6_addr);
-	}
-
-
 		T _messenger;
 		sockaddr_in _addrport
 		{
@@ -145,18 +110,9 @@ using std::cout, std::endl;
 constexpr auto max_data_size = 1024; // max number of bytes we can get at once
 constexpr auto backlog = 10;
 
-// get sockaddr, IPv4 or IPv6
-inline auto get_in_addr(sockaddr *sa) -> void *
-{
-	if (sa->sa_family == AF_INET)
-	{
-		return &(((struct sockaddr_in *)sa)->sin_addr);
-	}
 
-	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
-}
 
-inline auto sendall(int sock, char const *buf, int *len) -> int
+inline auto sendall(int sock, auto *buf, int *len) -> int
 {
 	int total = 0;
 	int bytesleft = *len;

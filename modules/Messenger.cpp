@@ -2,6 +2,7 @@ export module Messenger;
 
 export import Common;
 export import Client;
+export import Caller;
 
 using namespace std;
 
@@ -18,3 +19,4 @@ concept Messenger = requires (T& messenger, string&& in_message, client&& new_cl
 {	
 	{messenger (std::move (in_message), std::move (new_client))} -> String; 
 };
+

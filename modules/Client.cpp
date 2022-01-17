@@ -47,7 +47,7 @@ export struct client
 			throw;
 		}
 
-		
+
 	}
 	// returns clients ip address
 	auto ip_address () const noexcept -> String auto const&
@@ -69,16 +69,6 @@ export struct client
 	make sure client struct adheres to Client interface
 */
 static_assert (Client <client>);
-
-// get sockaddr, IPv4 or IPv6:
-inline auto get_in_addr(sockaddr *sa) -> void *
-{
-	if (sa->sa_family == AF_INET)
-	{
-		return &(((struct sockaddr_in *)sa)->sin_addr);
-	}
-	return &(((struct sockaddr_in6 *)sa)->sin6_addr);
-}
 
 inline auto sendall(int sock, char const *buf, int *len) -> int
 {
