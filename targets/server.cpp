@@ -1,7 +1,5 @@
 // server.cpp
 
-
-
 import Server;
 import Common;
 // import Darwin;
@@ -11,49 +9,33 @@ import Server;
 import Http;
 import std;
 
-
 using std::cout, std::endl, std::move;
-
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
-
-
-
-
-
-
-
-
 auto main(int, char **) -> int
 {
 
-
-	
-	
-	
-
 	// process a clients message and return a response
-	Messenger auto m = [&](String auto&& in, Client auto&& cl) -> String auto&&
+	Messenger auto m = [&](String auto &&in, Client auto &&cl) -> String auto &&
 	{
 		return "hej";
 	};
 
-	Server auto s = make_server (move (m));
+	Server auto s = make_server(move(m));
+	
+	cout << "connect through port " << s.port () << endl;
 
-	s.start ();
-
-
+	s.start();
 
 	// auto s = make_server (m);
 
 	// s.start ();
 
-
 	// auto s = server {std::move (m), "8080"};
-// serve("8080", callback);
-return 0;
+	// serve("8080", callback);
+	return 0;
 }
 
 // "HTTP/1.1 200 OK\r\n"
@@ -73,8 +55,6 @@ return 0;
 // Accept-Language: en-GB,en;q=0.9
 // Accept-Encoding: gzip, deflate
 // Connection: keep-alive
-
-
 
 /*
 auto file_users = std::ifstream{"data/users.json"};
@@ -276,7 +256,7 @@ Messenger auto m = [&](client cl, std::string incoming) -> std::string
 					if (*j == *(i -> second))
 					{
 						break;
-					} 
+					}
 				}
 
 				if (j == users.end ()) // user not found
@@ -322,7 +302,7 @@ Messenger auto m = [&](client cl, std::string incoming) -> std::string
 						{"username", u ["username"]},
 						{"name", u ["name"]},
 						{"email", u ["email"]}
-					};	
+					};
 
 					users_view.push_back (std::move (view));
 				}
@@ -342,7 +322,7 @@ Messenger auto m = [&](client cl, std::string incoming) -> std::string
 				response.data = status.dump();
 			}
 		}
-	
+
 
 		return to_string(response);
 	};

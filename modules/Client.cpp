@@ -20,8 +20,10 @@ export struct client
 {
 	client(client&&) = default;
 	client(client const&) = default;
-	client ()
+	client (int port)
 	{
+		_addrport.sin_port = htons (port);
+
 		if ((_sockid = socket (PF_INET, SOCK_STREAM, 0)) == -1)
 		{
 			perror ("socket error");
@@ -29,7 +31,7 @@ export struct client
 		}
 	}
 
-	auto call ()
+	auto call (char const* msg)
 	{
 		if (connect (_sockid, (struct sockaddr*) &_addrport, sizeof (_addrport)) == -1)
 		{
@@ -37,7 +39,15 @@ export struct client
 			throw;
 		}
 
+		auto sent_bytes = send (_sockid, msg, strlen (msg), 0);
 
+		if (sent_bytes == -1)
+		{
+			perror ("send error");
+			throw;
+		}
+
+		
 	}
 	// returns clients ip address
 	auto ip_address () const noexcept -> String auto const&
@@ -50,7 +60,7 @@ export struct client
 	sockaddr_in _addrport
 	{
 		.sin_family = AF_INET,
-		.sin_port = htons (INADDR_ANY),
+		// .sin_port = htons (52162),
 		.sin_addr.s_addr = htonl (INADDR_ANY)
 	};	
 };

@@ -8,13 +8,15 @@ using namespace nlohmann;
 
 using std::cout, std::cin, std::endl, std::string;
 
-#define PORT "8080"
-#define SERVER_ADDRESS "127.0.0.1"
 
-auto main(int, char **) -> int
-{
-	Client auto c = client {};
-	c.call ();
+
+auto main (int, char ** args) -> int
+{	
+	auto port = atoi (args [1]);
+	Client auto c = client {port};
+	c.call ("hej");
+	
+
 
 	return 0;
 }
