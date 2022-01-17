@@ -32,7 +32,7 @@ auto main (int argc, char ** argv) -> int
 
 
 	
-	cout << "connect through port " << s.port () << endl;
+	std::cout << "port >> " << s.port () << std::endl;
 
 	s.start();
 

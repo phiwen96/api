@@ -13,9 +13,11 @@ using std::cout, std::cin, std::endl, std::string;
 auto main (int, char ** args) -> int
 {	
 	auto port = atoi (args [1]);
+
 	Client auto c = client {port};
-	c.call ("hej");
 	
+	c.call ("hej");
+
 
 
 	return 0;

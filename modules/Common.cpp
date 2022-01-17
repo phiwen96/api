@@ -28,7 +28,30 @@ export
 		return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 	}
 
-	inline auto nr_of_threads () noexcept -> auto
+	inline auto sendall(int sock, auto &&buf)->int
+	{
+		int total = 0;
+		int len = sizeof (buf);
+		int bytesleft = len;
+		int n;
+
+		while (total < len)
+		{
+			n = send(sock, &buf + total, bytesleft, 0);
+			if (n == -1)
+			{
+				break;
+			}
+			total += n;
+			bytesleft -= n;
+		}
+
+		// *len = total;
+
+		return n == -1 ? -1 : 0; // return -1 on failure, 0 on success
+	}
+
+	inline auto nr_of_threads() noexcept->auto
 	{
 		return std::thread::hardware_concurrency();
 	}
