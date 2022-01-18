@@ -133,6 +133,11 @@ export
 								throw;
 							}
 
+							if (acceptConnection (connection {remote.sockid}))
+							{
+								
+							}
+
 							polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
 
 							break;
