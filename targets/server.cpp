@@ -10,7 +10,7 @@ import Http;
 import std;
 import Connection;
 
-using std::cout, std::endl, std::move;
+using std::cout, std::endl, std::move, std::string;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -29,15 +29,10 @@ auto main (int argc, char ** argv) -> int
 	
 
 	// process a clients message and return a response
-	auto&& m = [](connection&& c)
+	auto&& m = [](connection&& c, string&& msg) -> string
 	{
-		// cout << c.read() << endl;
-		// c.write ("hello from server");
-		std::cout << "new connection" << std::endl;
-		// cout << "new connection from " << c << endl;
-		// String auto&& request = c.read();
-		// cout << request << endl;
-		// c.write ("hello from server");
+		cout << "from client: " << msg << endl;
+		return "hello from server";
 	};
 
 	// auto&& request = [](connection&& c)

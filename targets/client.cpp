@@ -38,8 +38,10 @@ auto main (int argc, char ** argv) -> int
 
 	Client auto cl = client {remoteIP, remotePORT};
 
+
 	cl.write("hello from client");
 	cout << cl.read() << endl;
+	
 
 	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 

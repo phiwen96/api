@@ -56,7 +56,7 @@ export struct client
 		}
 	}
 
-	auto read() -> String auto &&
+	auto read() -> std::string
 	{
 		auto len = getpagesize();
 		char buf[len];
@@ -67,7 +67,7 @@ export struct client
 			throw;
 		}
 		buf[numbytes] = '\0';
-		return std::move(std::string{buf});
+		return buf;
 	}
 	void write(std::string &&src)
 	{

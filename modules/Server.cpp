@@ -122,51 +122,8 @@ export
 				int j = 0;
 				for (auto i = polls.begin(); i != polls.end(); ++i)
 				{
-					// if (i->revents & POLLHUP)
-					// {
-					// 	std::cout << "client hung up" << std::endl;
-					// 	if (close (i->fd) == -1)
-					// 	{
-					// 		perror ("close error");
-					// 		throw;
-					// 	}
-
-					// 	i = polls.erase(i);
-					// 	// continue;
-					// }
-
-					// if (i -> revents & POLLHUP)
-					// {
-					// 	std::cout << "hungup" << std::endl;
-					// }
-
-					// client has sent us something or hung up
 					if (i->revents & POLLIN)
 					{
-						
-						// std::cout << j << std::endl;
-
-						// struct
-						// {
-						// 	sockaddr_storage addr;
-						// 	unsigned int len = sizeof(addr);
-						// 	int sockid;
-						// 	char ip_address[INET6_ADDRSTRLEN];
-						// } remote;
-
-						// remote.sockid = i->fd;
-
-						// if (getpeername(remote.sockid, (struct sockaddr *)&remote.addr, &remote.len) == -1)
-						// {
-						// 	perror("getpeername error");
-						// 	throw;
-						// }
-
-						// inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, remote.len);
-
-						// std::cout << remote.ip_address << " sent something!" << std::endl;
-
-						// a client is trying to connect
 						if (i->fd == _sockid)
 						{
 							// get remote socket
@@ -175,14 +132,9 @@ export
 								perror("accept error");
 								throw;
 							}
-							// get remote ip address
-							// inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof(remote.ip_address));
-							// std::cout << "new connection from " << remote.ip_address << std::endl;
 
-							// monitor new client socket
 							polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
 
-							// std::cout << "added new connection" << std::endl;
 							break;
 
 						} else
@@ -212,20 +164,21 @@ export
 							// client sent something
 							else
 							{
+								buf [numbytes] = '\0';
+
 								std::thread 
 								{
 									[&] // lambda
 									{
-										_messenger (connection {remote.sockid});
+										std::string&& response = _messenger (connection {remote.sockid}, std::string {buf});
+										if (sendall (remote.sockid, response.c_str(), response.size()) == -1)
+										{
+											perror ("sendall error");
+											throw;
+										}
 									}
-
 								}.detach();
-								// std::cout << "client sent: " << buf << std::endl;
-
-
-								// std::cout << c << std::endl;
 							}
-							
 							break;
 						}
 					}
