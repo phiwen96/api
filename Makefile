@@ -90,6 +90,9 @@ $(MODULES_DIR)/Http.pcm: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Common.pcm
 $(MODULES_DIR)/Common.pcm: $(SOURCES_DIR)/Common.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@
 
+$(MODULES_DIR)/Ready.pcm: $(SOURCES_DIR)/Ready.cpp
+	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@
+
 
 
 ######################################

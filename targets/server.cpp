@@ -10,30 +10,77 @@ import Http;
 import std;
 import Connection;
 
-using std::cout, std::endl, std::move, std::string;
+using std::cout, std::endl, std::move, std::string, std::vector;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
 #define EAT(...) 
 
+
+
+// template <typename T>
+// concept 
+
+auto connected = vector <connection> {};
+
+auto addConnection = [] <Connection T> (T&& new_connection)
+{
+	connected.push_back (move (new_connection));
+};
+
+auto acceptConnection = [] <Connection T> (T&& new_connection) -> bool
+{
+	EAT(
+		// we can use the operator co_await to wait for something without blocking the currently executing thread
+		if (co_await alreadyConnected (new_connection))
+		{
+			return false;
+		}
+
+		co_await addConnection (move (new_connection));
+	)
+	return true;
+};
+
+
+
+auto onDisconnection = [] <Connection T> (T&& disconnect)
+{
+
+};
+
+auto onIncomingMessage = [] <Connection T> (T&& from)
+{
+
+};
+
+auto sendMessage = [] <Connection T> (T&& to)
+{
+	
+};
+
 auto main (int argc, char ** argv) -> int
 {
 	// auto i = nr_of_threads ();
 
-	if (argc != 2)
-	{
-		cout << "usage >> " << "<localPORT>" << endl;
-		return 1;
-	}
+	// if (argc != 2)
+	// {
+	// 	cout << "usage >> " << "<localPORT>" << endl;
+	// 	return 1;
+	// }
+
+
+	
+
 	
 
 	// process a clients message and return a response
-	auto&& m = [](connection&& c, string&& msg) -> string
-	{
-		cout << "from client: " << msg << endl;
-		return "hello from server";
-	};
+	// auto&& m = [](connection&& c, string&& msg) -> string
+	// {
+	// 	cout << "from client: " << msg << endl;
+	// 	return "hello from server";
+	// };
 
 	// auto&& request = [](connection&& c)
 	// {
@@ -44,13 +91,13 @@ auto main (int argc, char ** argv) -> int
 
 
 
-	Server auto s = make_server(move(m), atoi (argv [1]));
+	// Server auto s = make_server(move(m), atoi (argv [1]));
 
 
 	
-	std::cout << "port >> " << s.port () << std::endl;
+	// std::cout << "port >> " << s.port () << std::endl;
 
-	s.start();
+	// s.start();
 
 	// auto s = make_server (m);
 
