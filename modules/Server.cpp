@@ -143,15 +143,13 @@ export
 
 							if (numbytes == -1)
 							{
-								std::cout << j << std::endl;
 								perror("recv error");
 								throw;
 							}
 							// client hung up
 							else if (numbytes == 0)
 							{
-								std::cout << j << std::endl;
-								std::cout << "client hung up" << std::endl;
+								// std::cout << "client hung up" << std::endl;
 
 								if (close(i->fd) == -1)
 								{
@@ -184,14 +182,7 @@ export
 					}
 					++j;
 				}
-				// std::cout << "lol" << std::endl;
 			}
-
-			// auto&& c = caller {_sockid};
-
-			// auto buffer = std::array <>
-
-			// auto received_bytes = recv (c.get_socket (), )
 		}
 
 		auto stop()
