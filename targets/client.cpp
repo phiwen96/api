@@ -32,7 +32,7 @@ auto main (int argc, char ** argv) -> int
 	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 
 	// conn.write ("hello from client");
-
+	// cl.close();
 	cout << "tjo" << endl;
 
 	

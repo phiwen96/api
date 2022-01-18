@@ -31,7 +31,9 @@ auto main (int argc, char ** argv) -> int
 		c.write ("hello from server");
 	};
 
-	Server auto s = make_server(move(m));
+	
+
+	Server auto s = make_server(move(m), atoi (argv [1]));
 
 
 	

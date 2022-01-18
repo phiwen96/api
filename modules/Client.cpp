@@ -20,8 +20,8 @@ concept Client = requires(T const client)
 
 export struct client
 {
-	client(client &&) = default;
-	client(client const &) = default;
+	client(client &&) = delete;
+	client(client const &) = delete;
 	client(std::string &&remoteIP, int remotePort)
 	{
 		if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
@@ -38,6 +38,20 @@ export struct client
 		if (::connect(_sockid, (struct sockaddr *)&remote, sizeof(remote)) == -1)
 		{
 			perror("connect error");
+			throw;
+		}
+	}
+	~client ()
+	{
+		if (shutdown (_sockid, SHUT_RDWR) == -1)
+		{
+			perror ("shutdown error");
+			throw;
+		}
+
+		if (close (_sockid) == -1)
+		{
+			perror ("close error");
 			throw;
 		}
 	}

@@ -1,13 +1,13 @@
 # how to run server
 ```console
-foo@bar:~$ make && build/apps/server
+foo@bar:~$ make && build/apps/server <PORT>
 ```
 The server will let the system choose a portnumber and display it
 for you so that you can start the client application with that port number.
 
 # how to run client
 ```console
-foo@bar:~$ make && build/apps/client 127.0.0.1 <server port>
+foo@bar:~$ make && build/apps/client <remoteIP> <remotePort>
 ```
 
 # The following table shows all the RESTful APIs available for developers

@@ -62,6 +62,32 @@ export
 			}
 		}
 
+		server(T &&msg, int port) : _messenger{fwd(msg)}
+		{
+			_addrport.sin_port = htons(port);
+
+			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
+			{
+				perror("socket error");
+				throw;
+			}
+
+			// set socket to non-blocking (for async)
+			fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+
+			if (bind(_sockid, (struct sockaddr *)&_addrport, sizeof(_addrport)) == -1)
+			{
+				throw;
+				perror("bind error");
+			}
+
+			if (listen(_sockid, 10) == -1)
+			{
+				perror("listen error");
+				throw;
+			}
+		}
+
 		auto start()
 		{
 			auto polls = std::vector<pollfd>{
@@ -69,32 +95,80 @@ export
 					.fd = _sockid,
 					.events = POLLIN}};
 
+			polls.reserve (10);
+
+			struct
+			{
+				sockaddr_storage addr;
+				unsigned int len = sizeof(addr);
+				int sockid;
+				char ip_address[INET6_ADDRSTRLEN];
+			} remote;
+
+			int len = getpagesize();
+							char buf[len];
+							int numbytes;
+
 			while (true)
 			{
+				// std::cout << polls.size() << std::endl;
 				// wait for server socket to be written to
-				if (poll(polls.data(), 1, -1) == -1)
+				if (poll(polls.data(), polls.size(), -1) == -1)
 				{
 					perror("poll error");
 					throw;
 				}
 
-				for (auto &p : polls)
+				int j = 0;
+				for (auto i = polls.begin(); i != polls.end(); ++i)
 				{
-					// if socket is ready for read
-					if (p.revents & POLLIN)
-					{
-						// new connection
-						if (p.fd == _sockid)
-						{
-							struct
-							{
-								sockaddr_storage addr;
-								unsigned int len = sizeof(addr);
-								int sockid;
-								char ip_address[INET6_ADDRSTRLEN];
-							} remote;
-							// std::cout << "got connection!" << std::endl;
+					// if (i->revents & POLLHUP)
+					// {
+					// 	std::cout << "client hung up" << std::endl;
+					// 	if (close (i->fd) == -1)
+					// 	{
+					// 		perror ("close error");
+					// 		throw;
+					// 	}
 
+					// 	i = polls.erase(i);
+					// 	// continue;
+					// }
+
+					// if (i -> revents & POLLHUP)
+					// {
+					// 	std::cout << "hungup" << std::endl;
+					// }
+
+					// client has sent us something or hung up
+					if (i->revents & POLLIN)
+					{
+						
+						// std::cout << j << std::endl;
+
+						// struct
+						// {
+						// 	sockaddr_storage addr;
+						// 	unsigned int len = sizeof(addr);
+						// 	int sockid;
+						// 	char ip_address[INET6_ADDRSTRLEN];
+						// } remote;
+
+						// remote.sockid = i->fd;
+
+						// if (getpeername(remote.sockid, (struct sockaddr *)&remote.addr, &remote.len) == -1)
+						// {
+						// 	perror("getpeername error");
+						// 	throw;
+						// }
+
+						// inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, remote.len);
+
+						// std::cout << remote.ip_address << " sent something!" << std::endl;
+
+						// a client is trying to connect
+						if (i->fd == _sockid)
+						{
 							// get remote socket
 							if ((remote.sockid = accept(_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
 							{
@@ -102,31 +176,46 @@ export
 								throw;
 							}
 							// get remote ip address
-							inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof(remote.ip_address));
-							std::cout << "new connection from " << remote.ip_address << std::endl;
+							// inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof(remote.ip_address));
+							// std::cout << "new connection from " << remote.ip_address << std::endl;
+
+							// monitor new client socket
 							polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
-						} else // client has sent something
+
+							std::cout << "added new connection" << std::endl;
+							break;
+
+						} else
 						{
-							struct
-							{
-								sockaddr_storage addr;
-								unsigned int len = sizeof(addr);
-								int sockid;
-								char ip_address[INET6_ADDRSTRLEN];
-							} remote;
+							std::cout << "else: " << j << std::endl;
 
-							remote.sockid = p.fd;
+							numbytes = recv (i->fd, buf, sizeof(buf), 0);
 
-							if (getpeername (remote.sockid, (struct sockaddr *)&remote.addr, &remote.len) == -1)
+							if (numbytes == -1)
 							{
-								perror ("getpeername error");
+								std::cout << j << std::endl;
+								perror("recv error");
 								throw;
 							}
+							// client hung up
+							else if (numbytes == 0)
+							{
+								std::cout << j << std::endl;
+								std::cout << "client hung up" << std::endl;
 
-							inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, remote.len);
-
-							std::cout << remote.ip_address << " sent something!" << std::endl;
-
+								if (close(i->fd) == -1)
+								{
+									perror("close error");
+									throw;
+								}
+								polls.erase(i);
+								break;
+							}
+							// client sent something
+							else
+							{
+								std::cout << "client sent: " << buf << std::endl;
+							}
 						}
 
 						// auto&& new_connection = connection
@@ -139,7 +228,9 @@ export
 
 						// std::cout << c << std::endl;
 					}
+					++j;
 				}
+				// std::cout << "lol" << std::endl;
 			}
 
 			// auto&& c = caller {_sockid};
@@ -177,9 +268,9 @@ export
 	};
 
 	template <typename T>
-	auto make_server(T && msg)->Server auto &&
+	auto make_server(T && msg, int port)->Server auto &&
 	{
-		return std::move(server<T>{fwd(msg)});
+		return std::move(server<T>{fwd(msg), port});
 	}
 }
 
