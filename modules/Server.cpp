@@ -64,7 +64,7 @@ export
 
 		auto start()
 		{
-			auto polls = std::array<pollfd, 1>{
+			auto polls = std::vector<pollfd>{
 				pollfd{
 					.fd = _sockid,
 					.events = POLLIN}};
@@ -78,36 +78,67 @@ export
 					throw;
 				}
 
-				// if server socket is ready for read
-				if (polls[0].revents & POLLIN)
+				for (auto &p : polls)
 				{
-					struct
+					// if socket is ready for read
+					if (p.revents & POLLIN)
 					{
-						sockaddr_storage addr;
-						unsigned int len = sizeof(addr);
-						int sockid;
-						char ip_address[INET6_ADDRSTRLEN];
-					} remote;
-					// std::cout << "got connection!" << std::endl;
+						// new connection
+						if (p.fd == _sockid)
+						{
+							struct
+							{
+								sockaddr_storage addr;
+								unsigned int len = sizeof(addr);
+								int sockid;
+								char ip_address[INET6_ADDRSTRLEN];
+							} remote;
+							// std::cout << "got connection!" << std::endl;
 
-					// get remote socket
-					if ((remote.sockid = accept(_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
-					{
-						perror("accept error");
-						throw;
+							// get remote socket
+							if ((remote.sockid = accept(_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
+							{
+								perror("accept error");
+								throw;
+							}
+							// get remote ip address
+							inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof(remote.ip_address));
+							std::cout << "new connection from " << remote.ip_address << std::endl;
+							polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
+						} else // client has sent something
+						{
+							struct
+							{
+								sockaddr_storage addr;
+								unsigned int len = sizeof(addr);
+								int sockid;
+								char ip_address[INET6_ADDRSTRLEN];
+							} remote;
+
+							remote.sockid = p.fd;
+
+							if (getpeername (remote.sockid, (struct sockaddr *)&remote.addr, &remote.len) == -1)
+							{
+								perror ("getpeername error");
+								throw;
+							}
+
+							inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, remote.len);
+
+							std::cout << remote.ip_address << " sent something!" << std::endl;
+
+						}
+
+						// auto&& new_connection = connection
+						// {
+						// 	remote.ip_address,
+						// 	remote.sockid
+						// };
+
+						// std::thread {[&]{_messenger (std::move (new_connection));}}.detach();
+
+						// std::cout << c << std::endl;
 					}
-					// get remote ip address
-					inet_ntop(remote.addr.ss_family, get_in_addr((struct sockaddr *)&remote.addr), remote.ip_address, sizeof(remote.ip_address));
-
-					auto&& new_connection = connection 
-					{
-						remote.ip_address,
-						remote.sockid
-					};
-					
-					std::thread {[&]{_messenger (std::move (new_connection));}}.detach();
-					
-					// std::cout << c << std::endl;
 				}
 			}
 

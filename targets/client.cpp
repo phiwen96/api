@@ -23,15 +23,15 @@ auto main (int argc, char ** argv) -> int
 
 	auto&& m = [](connection&& serv)
 	{
-		String auto&& request = serv.read();
-		cout << request << endl;
+		serv.write ("hello from client");
+		cout << serv.read () << endl;
 	};
 
-	Client auto cl = client {};
+	Client auto cl = client {argv[1], atoi(argv[2])};
 
-	auto conn =  cl.connect (std::move (remote.ip_address), remote.port); 
+	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 
-	conn.write ("hello from client");
+	// conn.write ("hello from client");
 
 	cout << "tjo" << endl;
 

@@ -15,6 +15,8 @@ export
 	{
 		connection(std::string &&ip_address, int sockid) noexcept : _ip_address{std::move(ip_address)}, _sockid{sockid}
 		{
+
+			// connect (_sockid, )
 		}
 		connection(connection &&) = default;
 		connection(connection const &) = default;

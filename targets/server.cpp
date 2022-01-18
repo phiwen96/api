@@ -28,6 +28,7 @@ auto main (int argc, char ** argv) -> int
 		cout << "new connection from " << c << endl;
 		String auto&& request = c.read();
 		cout << request << endl;
+		c.write ("hello from server");
 	};
 
 	Server auto s = make_server(move(m));

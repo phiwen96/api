@@ -22,17 +22,14 @@ export struct client
 {
 	client(client &&) = default;
 	client(client const &) = default;
-	client()
+	client(std::string &&remoteIP, int remotePort)
 	{
 		if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
 		{
 			perror("socket error");
 			throw;
 		}
-	}
 
-	auto connect(std::string &&remoteIP, int remotePort) -> connection &&
-	{
 		sockaddr_in remote{
 			.sin_family = AF_UNSPEC,
 			.sin_port = htons(remotePort),
@@ -43,15 +40,30 @@ export struct client
 			perror("connect error");
 			throw;
 		}
-
-		auto &&serv_connection = connection{std::move (remoteIP), remotePort};
-
-		return std::move (serv_connection);
 	}
 
-	auto start()
+	auto read() -> String auto &&
 	{
+		auto len = getpagesize();
+		char buf[len];
+		int numbytes;
+		if ((numbytes = recv(_sockid, buf, len - 1, 0)) == -1)
+		{
+			perror("recv error");
+			throw;
+		}
+		buf[numbytes] = '\0';
+		return std::move(std::string{buf});
 	}
+	void write(std::string &&src)
+	{
+		if (sendall(_sockid, src.c_str(), src.size()) == -1)
+		{
+			perror("sendall error");
+			throw;
+		}
+	}
+
 	// returns clients ip address
 	auto ip_address() const noexcept -> String auto const &
 	{
