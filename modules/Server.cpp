@@ -106,8 +106,8 @@ export
 			} remote;
 
 			int len = getpagesize();
-							char buf[len];
-							int numbytes;
+			char buf[len];
+			int numbytes;
 
 			while (true)
 			{
@@ -182,13 +182,11 @@ export
 							// monitor new client socket
 							polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
 
-							std::cout << "added new connection" << std::endl;
+							// std::cout << "added new connection" << std::endl;
 							break;
 
 						} else
 						{
-							std::cout << "else: " << j << std::endl;
-
 							numbytes = recv (i->fd, buf, sizeof(buf), 0);
 
 							if (numbytes == -1)
@@ -209,24 +207,27 @@ export
 									throw;
 								}
 								polls.erase(i);
-								break;
 							}
+
 							// client sent something
 							else
 							{
-								std::cout << "client sent: " << buf << std::endl;
+								std::thread 
+								{
+									[&] // lambda
+									{
+										_messenger (connection {remote.sockid});
+									}
+
+								}.detach();
+								// std::cout << "client sent: " << buf << std::endl;
+
+
+								// std::cout << c << std::endl;
 							}
+							
+							break;
 						}
-
-						// auto&& new_connection = connection
-						// {
-						// 	remote.ip_address,
-						// 	remote.sockid
-						// };
-
-						// std::thread {[&]{_messenger (std::move (new_connection));}}.detach();
-
-						// std::cout << c << std::endl;
 					}
 					++j;
 				}
@@ -268,9 +269,9 @@ export
 	};
 
 	template <typename T>
-	auto make_server(T && msg, int port)->Server auto &&
+	auto make_server(T && msg, int port)->server<T>
 	{
-		return std::move(server<T>{fwd(msg), port});
+		return {std::move(msg), port};
 	}
 }
 

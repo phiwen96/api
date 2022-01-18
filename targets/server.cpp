@@ -8,6 +8,7 @@ import Usr;
 import Server;
 import Http;
 import std;
+import Connection;
 
 using std::cout, std::endl, std::move;
 
@@ -18,20 +19,35 @@ using namespace nlohmann;
 
 auto main (int argc, char ** argv) -> int
 {
-	auto i = nr_of_threads ();
+	// auto i = nr_of_threads ();
 
+	if (argc != 2)
+	{
+		cout << "usage >> " << "<localPORT>" << endl;
+		return 1;
+	}
 	
 
 	// process a clients message and return a response
 	auto&& m = [](connection&& c)
 	{
-		cout << "new connection from " << c << endl;
-		String auto&& request = c.read();
-		cout << request << endl;
-		c.write ("hello from server");
+		// cout << c.read() << endl;
+		// c.write ("hello from server");
+		std::cout << "new connection" << std::endl;
+		// cout << "new connection from " << c << endl;
+		// String auto&& request = c.read();
+		// cout << request << endl;
+		// c.write ("hello from server");
 	};
 
-	
+	// auto&& request = [](connection&& c)
+	// {
+
+	// };
+
+
+
+
 
 	Server auto s = make_server(move(m), atoi (argv [1]));
 

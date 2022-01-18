@@ -21,19 +21,31 @@ auto main (int argc, char ** argv) -> int
 	// remote.ip_address = argv [1];
 	// remote.port = atoi (argv [2]);
 
+	if (argc != 3)
+	{
+		cout << "usage >> " << "<remoteIP> <remotePORT>" << endl;
+		return 1;
+	}
+
+	auto remoteIP = argv [1];
+	auto remotePORT = atoi (argv [2]);
+
 	auto&& m = [](connection&& serv)
 	{
 		serv.write ("hello from client");
 		cout << serv.read () << endl;
 	};
 
-	Client auto cl = client {argv[1], atoi(argv[2])};
+	Client auto cl = client {remoteIP, remotePORT};
+
+	cl.write("hello from client");
+	cout << cl.read() << endl;
 
 	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 
 	// conn.write ("hello from client");
 	// cl.close();
-	cout << "tjo" << endl;
+	// cout << "tjo" << endl;
 
 	
 

@@ -13,18 +13,52 @@ export
 
 	struct connection
 	{
-		connection(std::string &&ip_address, int sockid) noexcept : _ip_address{std::move(ip_address)}, _sockid{sockid}
+		connection(int sockid) noexcept : _sockid{sockid}
 		{
 
 			// connect (_sockid, )
 		}
 		connection(connection &&) = default;
 		connection(connection const &) = default;
+		auto remoteIP() const -> std::string
+		{
+			// return "hej";
+			struct
+			{
+				sockaddr_storage addr;
+				char ip_address [INET6_ADDRSTRLEN];
+				int port;
+				unsigned int len = sizeof(addr);
+			} detail;
 
-		auto read() -> String auto&&
+			if (getpeername(_sockid, (struct sockaddr *)&detail.addr, &detail.len) == -1)
+			{
+				perror("getpeername error");
+				throw;
+			}
+
+			// deal with both IPv4 and IPv6:
+			if (detail.addr.ss_family == AF_INET)
+			{
+				struct sockaddr_in *s = (struct sockaddr_in *)&detail.addr;
+				detail.port = ntohs(s->sin_port);
+				inet_ntop(AF_INET, &s->sin_addr, detail.ip_address, sizeof detail.ip_address);
+			}
+			else
+			{ // AF_INET6
+				struct sockaddr_in6 *s = (struct sockaddr_in6 *)&detail.addr;
+				detail.port = ntohs(s->sin6_port);
+				inet_ntop(AF_INET6, &s->sin6_addr, detail.ip_address, sizeof detail.ip_address);
+			}
+			// std::cout << detail.ip_address << std::endl;
+
+			return detail.ip_address;//std::move (std::string {detail.ip_address});
+		}
+
+		auto read() -> String auto &&
 		{
 			auto len = getpagesize();
-			char buf [len];
+			char buf[len];
 			int numbytes;
 			if ((numbytes = recv(_sockid, buf, len - 1, 0)) == -1)
 			{
@@ -32,9 +66,9 @@ export
 				throw;
 			}
 			buf[numbytes] = '\0';
-			return std::move (std::string {buf});
+			return std::move(std::string{buf});
 		}
-		void write(std::string&& src)
+		void write(std::string &&src)
 		{
 			if (sendall(_sockid, src.c_str(), src.size()) == -1)
 			{
@@ -42,14 +76,14 @@ export
 				throw;
 			}
 		}
-		friend auto& operator << (std::ostream& os, connection const& me)
+		friend auto operator<<(std::ostream &os, connection const &me) -> std::ostream&
 		{
-			os << "remoteIP >> " << me._ip_address;
+			os << me.remoteIP ();
 			return os;
 		}
 
 	private:
-		std::string _ip_address;
+		// std::string _ip_address;
 		int _sockid;
 	};
 }
