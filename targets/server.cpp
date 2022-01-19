@@ -50,7 +50,7 @@ auto acceptConnection = [] <Connection T> (T&& new_connection) -> bool
 	return true;
 };
 
-auto onDisconnection = [] <Connection T> (T&& disconnect)
+auto onDisconnect = [] <Connection T> (T&& disconnect)
 {
 
 };
@@ -69,6 +69,15 @@ auto sendMessage = [] <Connection T> (T&& to)
 
 auto main (int argc, char ** argv) -> int
 {
+	
+	auto s = make_server (
+		atoi (argv [1]),
+		acceptConnection, 
+		onDisconnect, 
+		incomingMessage, 
+		sendMessage
+	);
+
 	// auto i = nr_of_threads ();
 
 	// if (argc != 2)

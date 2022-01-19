@@ -40,13 +40,13 @@ export
 		typename send_message>
 	struct server
 	{
-		server(server &&) = default;
-		server(server const &) = default;
+		server(server &&) = delete;
+		server(server const &) = delete;
 		server(
 			accept_connection& acceptConnection, 
 			on_disconnect& onDisconnect, 
 			incoming_message& incomingMessage, 
-			send_message& sendMessage) : _messenger{fwd(msg)}
+			send_message& sendMessage) : acceptConnection {acceptConnection}, onDisconnect {onDisconnect}, incomingMessage {incomingMessage}, sendMessage {sendMessage}
 		{
 			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
 			{
@@ -70,7 +70,12 @@ export
 			}
 		}
 
-		server(T &&msg, int port) : _messenger{fwd(msg)}
+		server(
+			int port,
+			accept_connection& acceptConnection, 
+			on_disconnect& onDisconnect, 
+			incoming_message& incomingMessage, 
+			send_message& sendMessage) : acceptConnection {acceptConnection}, onDisconnect {onDisconnect}, incomingMessage {incomingMessage}, sendMessage {sendMessage}
 		{
 			_addrport.sin_port = htons(port);
 
@@ -216,7 +221,10 @@ export
 		}
 
 	private:
-		incoming_message incomingMessage;		
+		accept_connection& acceptConnection;
+		on_disconnect& onDisconnect;
+		incoming_message& incomingMessage;
+		send_message& sendMessage;
 
 		sockaddr_in _addrport{
 			.sin_family = AF_UNSPEC,
@@ -232,6 +240,7 @@ export
 		typename incoming_message,
 		typename send_message>
 	auto make_server (
+		int port,
 		accept_connection& acceptConnection, 
 		on_disconnect& onDisconnect, 
 		incoming_message& incomingMessage, 
