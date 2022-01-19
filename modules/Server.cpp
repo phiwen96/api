@@ -22,6 +22,10 @@ export
 		Therefore, it must be initialized with a "Messenger" object
 		which can take care on the gossip part.
 		You should also be able to "start()" and "stop()" a "Server".
+
+		TODO
+		* use coroutines
+		* use concepts
 	*/
 
 	template <typename server>
