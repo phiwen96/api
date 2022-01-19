@@ -19,8 +19,15 @@ using namespace nlohmann;
 
 
 
-// template <typename T>
-// concept 
+// template <
+// 	typename accept_connection, 
+// 	typename on_disconnect, 
+// 	typename incoming_message,
+// 	typename send_message>
+// struct serv
+// {
+// 	accept_connection acceptConnection;
+// };
 
 auto connected = vector <connection> {};
 
@@ -43,14 +50,12 @@ auto acceptConnection = [] <Connection T> (T&& new_connection) -> bool
 	return true;
 };
 
-
-
 auto onDisconnection = [] <Connection T> (T&& disconnect)
 {
 
 };
 
-auto onIncomingMessage = [] <Connection T> (T&& from)
+auto incomingMessage = [] <Connection T> (T&& from)
 {
 
 };
@@ -59,6 +64,8 @@ auto sendMessage = [] <Connection T> (T&& to)
 {
 	
 };
+
+
 
 auto main (int argc, char ** argv) -> int
 {
