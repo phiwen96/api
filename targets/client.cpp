@@ -1,15 +1,15 @@
 import Client;
 import Http;
 // import std;
-import Common;
+import Core;
 import Connection;
 
-#include <nlohmann/json.hpp>
-using namespace nlohmann;
+// #include <nlohmann/json.hpp>
+// using namespace nlohmann;
 
-using std::cout, std::cin, std::endl, std::string;
+// using std::cout, std::cin, std::endl, std::string;
 
-
+#define EAT(...)
 
 auto main (int argc, char ** argv) -> int
 {	
@@ -20,7 +20,7 @@ auto main (int argc, char ** argv) -> int
 
 	// remote.ip_address = argv [1];
 	// remote.port = atoi (argv [2]);
-
+EAT(
 	if (argc != 3)
 	{
 		cout << "usage >> " << "<remoteIP> <remotePORT>" << endl;
@@ -42,7 +42,7 @@ auto main (int argc, char ** argv) -> int
 	cl.write("hello from client");
 	cout << cl.read() << endl;
 	
-
+)
 	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 
 	// conn.write ("hello from client");

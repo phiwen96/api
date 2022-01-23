@@ -9,6 +9,8 @@
 		"initializer_list": "cpp",
 		"utility": "cpp",
 		"string": "cpp",
-		"thread": "cpp"
+		"thread": "cpp",
+		"new": "cpp",
+		"type_traits": "cpp"
 	}
 }

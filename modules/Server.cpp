@@ -1,4 +1,20 @@
 module;
+
+export module Server;
+
+
+
+import Headers;
+
+
+
+
+
+export import Client;
+export import Messenger;
+export import Core;
+export import Connection;
+
 #include <signal.h>
 #include <poll.h>
 #include <fcntl.h>
@@ -8,18 +24,12 @@ module;
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-
-export module Server;
-
-export import Client;
-export import Messenger;
-export import Core;
-export import Connection;
+#include <bits/socket.h>
 
 #define fwd(x) std::forward<decltype(x)>(x)
 
@@ -67,46 +77,12 @@ export
 		server(server &&) = delete;
 		server(server const &) = delete;
 		server(
-			accept_connection &acceptConnection,
-			on_disconnect &onDisconnect,
-			incoming_message &incomingMessage,
-			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
-		{	
-			_addrport.sin_port = htons(INADDR_ANY);
-			_addrport.sin_addr.s_addr = htonl(INADDR_ANY);
-
-			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
-			{
-				perror("socket error");
-				throw;
-			}
-
-			// set socket to non-blocking (for async)
-			fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
-
-			if (bind(_sockid, (struct sockaddr *)&_addrport, sizeof(_addrport)) == -1)
-			{
-				throw;
-				perror("bind error");
-			}
-
-			if (listen(_sockid, 5) == -1)
-			{
-				perror("listen error");
-				throw;
-			}
-		}
-
-		server(
 			int port,
 			accept_connection &acceptConnection,
 			on_disconnect &onDisconnect,
 			incoming_message &incomingMessage,
 			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
 		{
-			_addrport.sin_port = htons(INADDR_ANY);
-			_addrport.sin_port = htons(port);
-
 			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
 			{
 				perror("socket error");
@@ -116,7 +92,14 @@ export
 			// set socket to non-blocking (for async)
 			fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
 
-			if (bind(_sockid, (struct sockaddr *)&_addrport, sizeof(_addrport)) == -1)
+			struct sockaddr detail
+			{
+				// .sin_family = AF_UNSPEC,
+				// .sin_port = htons(port),
+				// .sin_addr.s_addr = htonl(INADDR_ANY)
+			};
+
+			if (bind(_sockid, (struct sockaddr *)&detail, sizeof(detail)) == -1)
 			{
 				throw;
 				perror("bind error");
@@ -131,12 +114,12 @@ export
 
 		auto start()
 		{
-			auto polls = std::vector<pollfd>{
+			auto polls = vector<pollfd>{
 				pollfd{
 					.fd = _sockid,
 					.events = POLLIN}};
 
-			polls.reserve(10);
+			// polls.reserve(10);
 
 			struct
 			{
@@ -155,14 +138,14 @@ export
 				// std::cout << polls.size() << std::endl;
 
 				// wait for something to happen
-				if (poll(polls.data(), polls.size(), -1) == -1)
+				if (poll(polls, length (polls), -1) == -1)
 				{
 					perror("poll error");
 					throw;
 				}
 
 				// new connection
-				if (polls[0] == _sockid)
+				if (polls[0].fd == _sockid)
 				{
 					// accept connection
 					if ((remote.sockid = accept(_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
@@ -174,7 +157,7 @@ export
 					// keep it ?
 					if (acceptConnection(connection{remote.sockid}))
 					{
-						polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN}); // monitor socket
+						push(polls, pollfd{.fd = remote.sockid, .events = POLLIN}); // monitor socket
 					}
 					else // disconnect, close socket
 					{
@@ -187,7 +170,7 @@ export
 					break;
 				}
 
-				for (auto i = polls.begin() + 1; i != polls.end(); ++i)
+				for (auto i = begin(polls) + 1; i != end(polls); ++i)
 				{
 					if (i->revents & POLLIN)
 					{
@@ -206,7 +189,7 @@ export
 								perror("close error");
 								throw;
 							}
-							polls.erase(i);
+							erase(polls, i);
 
 							// onDisconnect ()
 						}
@@ -256,7 +239,6 @@ export
 		incoming_message &incomingMessage;
 		send_message &sendMessage;
 
-		sockaddr_in _addrport{.sin_family = AF_UNSPEC};
 		int _sockid;
 		bool _running;
 	};

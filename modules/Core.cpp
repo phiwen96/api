@@ -12,6 +12,7 @@ module;
 #include <netdb.h>
 export module Core;
 
+export import Vector;
 export import Same;
 export import Convertible;
 export import String;
