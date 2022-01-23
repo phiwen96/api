@@ -6,7 +6,7 @@ export module Server;
 
 export import Client;
 export import Messenger;
-export import Common;
+export import Core;
 export import Caller;
 export import Connection;
 

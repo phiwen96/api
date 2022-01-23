@@ -1,19 +1,38 @@
+module;
+
+// #include <iostream>
+// #include <thread>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+// #include <string>
+
+
 export module Common;
 
-export import std;
-export import Darwin;
 
+// export import std;
+// export import std.io;
+// export import Darwin;
+// import std.core;
 // using namespace std;
-// using namespace nlohmann;
+// using namespace nlohmann;eEEE
+
+export import Same;
+export import Convertible;
+export import String;
+export import Char;
 
 export
 {
-	template <typename T>
-	concept String = requires(T a, T && b)
-	{
-		std::string{a};
-		std::string{std::forward<T &&>(b)};
-	};
+
 
 #define fwd(x) std::forward<x>(x)
 

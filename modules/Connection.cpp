@@ -1,11 +1,28 @@
+module;
+// import std;
+
+// #include <thread>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+// #include <iostream>
+// #include <string>
+
 export module Connection;
 
-import Common;
+import Core;
 
 export
 {
 	template <typename T>
-	concept Connection = requires(T t, std::string && s)
+	concept Connection = requires(T t, char const* s)
 	{
 		t.read(s);
 		t.write("hej");
@@ -20,7 +37,7 @@ export
 		}
 		connection(connection &&) = default;
 		connection(connection const &) = default;
-		auto remoteIP() const -> std::string
+		auto remoteIP() const -> String auto
 		{
 			// return "hej";
 			struct
@@ -68,19 +85,19 @@ export
 			buf[numbytes] = '\0';
 			return std::move(std::string{buf});
 		}
-		void write(std::string &&src)
+		void write(char const* src)
 		{
-			if (sendall(_sockid, src.c_str(), src.size()) == -1)
+			if (sendall(_sockid, src, strlen (src)) == -1)
 			{
 				perror("sendall error");
 				throw;
 			}
 		}
-		friend auto operator<<(std::ostream &os, connection const &me) -> std::ostream&
-		{
-			os << me.remoteIP ();
-			return os;
-		}
+		// friend auto operator<<(std::ostream &os, connection const &me) -> std::ostream&
+		// {
+		// 	os << me.remoteIP ();
+		// 	return os;
+		// }
 
 	private:
 		// std::string _ip_address;

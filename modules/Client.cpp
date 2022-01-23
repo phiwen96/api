@@ -1,6 +1,6 @@
 export module Client;
 
-export import Common;
+export import Core;
 export import Connection;
 
 /*
