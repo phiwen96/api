@@ -12,6 +12,7 @@ module;
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <malloc.h>
 // #include <iostream>
 // #include <string>
 
@@ -19,10 +20,11 @@ export module Connection;
 
 import Core;
 
+
 export
 {
 	template <typename T>
-	concept Connection = requires(T t, char const* s)
+	concept Connection = requires(T t, char const *s)
 	{
 		t.read(s);
 		t.write("hej");
@@ -43,10 +45,13 @@ export
 			struct
 			{
 				sockaddr_storage addr;
-				char ip_address [INET6_ADDRSTRLEN];
+				char* ip_address;
 				int port;
 				unsigned int len = sizeof(addr);
 			} detail;
+
+			detail.ip_address = (char*) malloc (sizeof (char) * INET6_ADDRSTRLEN + 1);
+			detail.ip_address [INET6_ADDRSTRLEN] = '\0';
 
 			if (getpeername(_sockid, (struct sockaddr *)&detail.addr, &detail.len) == -1)
 			{
@@ -69,13 +74,15 @@ export
 			}
 			// std::cout << detail.ip_address << std::endl;
 
-			return detail.ip_address;//std::move (std::string {detail.ip_address});
+			return detail.ip_address; // std::move (std::string {detail.ip_address});
 		}
 
-		auto read() -> String auto &&
+		auto read() -> String auto
 		{
 			auto len = getpagesize();
-			char buf[len];
+
+			String auto buf = (char *)malloc(sizeof(char) * len);
+
 			int numbytes;
 			if ((numbytes = recv(_sockid, buf, len - 1, 0)) == -1)
 			{
@@ -83,11 +90,11 @@ export
 				throw;
 			}
 			buf[numbytes] = '\0';
-			return std::move(std::string{buf});
+			return (char const *)buf;
 		}
-		void write(char const* src)
+		void write(char const *src)
 		{
-			if (sendall(_sockid, src, strlen (src)) == -1)
+			if (sendall(_sockid, src, strlen(src)) == -1)
 			{
 				perror("sendall error");
 				throw;

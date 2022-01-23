@@ -1,13 +1,24 @@
+module;
 #include <signal.h>
 #include <poll.h>
 #include <fcntl.h>
+#include <malloc.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 
 export module Server;
 
 export import Client;
 export import Messenger;
 export import Core;
-export import Caller;
 export import Connection;
 
 #define fwd(x) std::forward<decltype(x)>(x)
@@ -42,11 +53,8 @@ export
 	template <typename server>
 	concept Server = requires(server && s)
 	{
-
 		s.start();
 		s.stop();
-
-		std::move(s);
 	};
 
 	template <
@@ -63,7 +71,10 @@ export
 			on_disconnect &onDisconnect,
 			incoming_message &incomingMessage,
 			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
-		{
+		{	
+			_addrport.sin_port = htons(INADDR_ANY);
+			_addrport.sin_addr.s_addr = htonl(INADDR_ANY);
+
 			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
 			{
 				perror("socket error");
@@ -93,6 +104,7 @@ export
 			incoming_message &incomingMessage,
 			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
 		{
+			_addrport.sin_port = htons(INADDR_ANY);
 			_addrport.sin_port = htons(port);
 
 			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
@@ -196,24 +208,24 @@ export
 							}
 							polls.erase(i);
 
-							onDisconnect ()
+							// onDisconnect ()
 						}
 
 						else
 						{
 							buf[numbytes] = '\0';
 
-							std::thread{
-								[&] // lambda
-								{
-									std::string &&response = incomingMessage(connection{remote.sockid}, std::string{buf});
-									if (sendall(remote.sockid, response.c_str(), response.size()) == -1)
-									{
-										perror("sendall error");
-										throw;
-									}
-								}}
-								.detach();
+							// std::thread{
+							// 	[&] // lambda
+							// 	{
+							// 		std::string &&response = incomingMessage(connection{remote.sockid}, std::string{buf});
+							// 		if (sendall(remote.sockid, response.c_str(), response.size()) == -1)
+							// 		{
+							// 			perror("sendall error");
+							// 			throw;
+							// 		}
+							// 	}}
+							// 	.detach();
 						}
 						break;
 					}
@@ -244,10 +256,7 @@ export
 		incoming_message &incomingMessage;
 		send_message &sendMessage;
 
-		sockaddr_in _addrport{
-			.sin_family = AF_UNSPEC,
-			.sin_port = htons(INADDR_ANY),
-			.sin_addr.s_addr = htonl(INADDR_ANY)};
+		sockaddr_in _addrport{.sin_family = AF_UNSPEC};
 		int _sockid;
 		bool _running;
 	};

@@ -2,9 +2,6 @@ export module Messenger;
 
 export import Core;
 export import Client;
-export import Caller;
-
-using namespace std;
 
 /*
 	A "Messenger" should be able to process a 
@@ -15,8 +12,8 @@ using namespace std;
 */
 
 export template <typename T>
-concept Messenger = requires (T& messenger, string&& in_message, client&& new_client)
+concept Messenger = requires (T& messenger, char const* in_message, client const& new_client)
 {	
-	{messenger (std::move (in_message), std::move (new_client))} -> String; 
+	{messenger (in_message, new_client)} -> String; 
 };
 
