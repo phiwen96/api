@@ -3,7 +3,7 @@
 CXX := /usr/bin/g++-11
 # CXX_FLAGS = -std=gnu++2b -stdlib=libc++ -fmodules-ts -fmodules -fbuiltin-module-map -fimplicit-modules -fimplicit-module-maps -fprebuilt-module-path=.
 # CXX_FLAGS = -std=gnu++2b -fmodules -fbuiltin-module-map
-CXX_FLAGS = -std=c++20 -fmodules-ts -fconcepts-diagnostics-depth=2
+CXX_FLAGS = -std=c++20 -fmodules-ts
 ############### External C++ libraries  ###################
 LIB_NLOHMANN := -I/opt/homebrew/Cellar/nlohmann-json/3.10.5
 
@@ -60,12 +60,11 @@ $(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
-$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp #$(MODULES_DIR)/Convertible.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o
-	$(CXX) $(CXX_FLAGS) -c $< -o $@
-
+$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o#$(MODULES_DIR)/Convertible.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o
+	$(CXX) $(CXX_FLAGS) -c $< -o $@ $(filter-out, $<, $^)
 # $(info $$NAMES is [${NAMES}])
 
 

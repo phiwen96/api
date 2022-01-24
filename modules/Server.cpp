@@ -60,7 +60,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 	
 
 	export template <typename server>
-	concept Server = requires(server && s)
+	concept Server = requires(server s)
 	{
 		s.start();
 		s.stop();
@@ -133,14 +133,6 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 			// std::cout << "success" << std::endl;
 		}
 
-
-
-
-
-		auto stop()
-		{
-			_running = false;
-		}
 
 	private:
 		accept_connection &acceptConnection;
