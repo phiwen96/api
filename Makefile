@@ -3,7 +3,7 @@
 CXX := /usr/bin/g++-11
 # CXX_FLAGS = -std=gnu++2b -stdlib=libc++ -fmodules-ts -fmodules -fbuiltin-module-map -fimplicit-modules -fimplicit-module-maps -fprebuilt-module-path=.
 # CXX_FLAGS = -std=gnu++2b -fmodules -fbuiltin-module-map
-CXX_FLAGS = -std=c++20 -fmodules-ts 
+CXX_FLAGS = -std=c++20 -fmodules-ts
 ############### External C++ libraries  ###################
 LIB_NLOHMANN := -I/opt/homebrew/Cellar/nlohmann-json/3.10.5
 
@@ -60,10 +60,10 @@ $(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Same.o 
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
-$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Same.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o
+$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp #$(MODULES_DIR)/Convertible.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 # $(info $$NAMES is [${NAMES}])
@@ -94,29 +94,29 @@ $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Same.o#$(MODUL
 
 
 
-# $(MODULES_DIR)/Core.o: $(SOURCES_DIR)/Core.cpp $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
-# 	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+$(MODULES_DIR)/Core.o: $(SOURCES_DIR)/Core.cpp $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/String.o: $(SOURCES_DIR)/String.cpp $(MODULES_DIR)/Char.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/Char.o: $(SOURCES_DIR)/Char.cpp $(MODULES_DIR)/Convertible.o
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/Vector.o: $(SOURCES_DIR)/Vector.cpp $(MODULES_DIR)/Size.o $(MODULES_DIR)/Same.o
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/Size.o: $(SOURCES_DIR)/Size.cpp $(MODULES_DIR)/Convertible.o
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/Convertible.o: $(SOURCES_DIR)/Convertible.cpp
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/Same.o: $(SOURCES_DIR)/Same.cpp
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 $(MODULES_DIR)/Headers.o: $(SOURCES_DIR)/Headers.cpp
-	$(CXX) $(CXX_FLAGS) $(filter-out, $<, $^) -c $< -o $@
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######################################
 directories := $(foreach dir, $(BUILD_DIRS), $(shell [ -d $(dir) ] || mkdir -p $(dir)))
