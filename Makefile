@@ -60,7 +60,7 @@ $(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
 $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp #$(MODULES_DIR)/Convertible.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o
@@ -70,8 +70,8 @@ $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp #$(MODULES_DIR)/Convertible.o
 
 
 ######## Modules ###########
-# $(MODULES_DIR)/Server.o: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Connection.o #$(MODULES_DIR)/Messenger.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
-# 	$(CXX) $(CXX_FLAGS) -c $^ -o $@ 
+$(MODULES_DIR)/Server.o: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Connection.o #$(MODULES_DIR)/Messenger.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
+	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 # $(MODULES_DIR)/Messenger.o: $(SOURCES_DIR)/Messenger.cpp $(MODULES_DIR)/Connection.o  $(MODULES_DIR)/Usr.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
 # 	$(CXX) $(CXX_F
@@ -83,8 +83,8 @@ $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp #$(MODULES_DIR)/Convertible.o
 # $(MODULES_DIR)/Client.o: $(SOURCES_DIR)/Client.cpp $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
 # 	$(CXX) -c $(CXX_FLAGS) $@ 
 
-# $(MODULES_DIR)/Connection.o: $(SOURCES_DIR)/Connection.cpp $(MODULES_DIR)/Core.o
-# 	$(CXX) $(CXX_FLAGS) -c $^ -o $@ 
+$(MODULES_DIR)/Connection.o: $(SOURCES_DIR)/Connection.cpp $(MODULES_DIR)/Core.o
+	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
 # $(MODULES_DIR)/Http.o: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Core.o 
 # 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 

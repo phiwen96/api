@@ -11,8 +11,8 @@
 // import Server;
 // import Http;
 // import Connection;
-
-import Core;
+#include <stdlib.h>
+import Server;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
 
@@ -33,7 +33,6 @@ import Core;
 // 	accept_connection acceptConnection;
 // };
 
-EAT(
 
 auto connected = vector <connection> {};
 
@@ -71,18 +70,16 @@ auto sendMessage = [] <Connection T> (T&& to)
 	
 };
 
-)
-
 int main (int argc, char ** argv)
 {
 	
-	// auto s = make_server (
-	// 	atoi (argv [1]),
-	// 	acceptConnection, 
-	// 	onDisconnect, 
-	// 	incomingMessage, 
-	// 	sendMessage
-	// );
+	auto s = make_server (
+		atoi (argv [1]),
+		acceptConnection, 
+		onDisconnect, 
+		incomingMessage, 
+		sendMessage
+	);
 
 	// auto i = nr_of_threads ();
 

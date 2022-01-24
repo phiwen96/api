@@ -15,13 +15,15 @@ module;
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <bits/socket.h>
+#include <sys/epoll.h>
+#include <vector>
 
 export module Server;
 
 
 
 // import Headers;
-
+import Core;
 export import Connection;
 
 /*
@@ -29,8 +31,7 @@ export import Client;
 export import Messenger;
 export import Core;
 export import Connection;
-
-
+*/
 
 #define fwd(x) std::forward<decltype(x)>(x)
 
@@ -95,9 +96,9 @@ export
 
 			struct sockaddr detail
 			{
-				// .sin_family = AF_UNSPEC,
-				// .sin_port = htons(port),
-				// .sin_addr.s_addr = htonl(INADDR_ANY)
+				.sin_family = AF_UNSPEC,
+				.sin_port = htons(port),
+				.sin_addr = htonl(INADDR_ANY)
 			};
 
 			if (bind(_sockid, (struct sockaddr *)&detail, sizeof(detail)) == -1)
@@ -129,6 +130,28 @@ export
 				int sockid;
 				char ip_address[INET6_ADDRSTRLEN];
 			} remote;
+
+			auto events_fd = epoll_create1 (0);
+
+			if (events_fd == -1)
+			{
+				perror ("epoll_create1");
+				return;
+			}
+
+			auto events = std::vector <epoll_event> 
+			{
+				{
+					.events = EPOLLIN | EPOLLET,
+					.fd = _sockid
+				}
+			};
+
+			
+
+
+
+
 
 			int len = getpagesize();
 			char buf[len];
@@ -261,4 +284,3 @@ export
 		return server<accept_connection, on_disconnect, incoming_message, send_message>{port, acceptConnection, onDisconnect, incomingMessage, sendMessage};
 	}
 }
-*/
