@@ -26,8 +26,7 @@ export
 	template <typename T>
 	concept Connection = requires(T t, char const *s)
 	{
-		t.read(s);
-		t.write("hej");
+		{t.remoteIP ()};
 	};
 
 	struct connection

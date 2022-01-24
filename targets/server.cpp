@@ -19,13 +19,11 @@ import Server;
 // #include <nlohmann/json.hpp>
 // using namespace nlohmann;
 
-#define EAT(...) 
-
-
+#define EAT(...)
 
 // template <
-// 	typename accept_connection, 
-// 	typename on_disconnect, 
+// 	typename accept_connection,
+// 	typename on_disconnect,
 // 	typename incoming_message,
 // 	typename send_message>
 // struct serv
@@ -34,52 +32,46 @@ import Server;
 // };
 
 
-auto connected = vector <connection> {};
-
-auto addConnection = [] <Connection T> (T&& new_connection)
-{
-	push (connected, move (new_connection));
-};
-
-auto acceptConnection = [] <Connection T> (T&& new_connection) -> bool
-{
-	EAT(
-		// we can use the operator co_await to wait for something without blocking the currently executing thread
-		if (co_await alreadyConnected (new_connection))
-		{
-			return false;
-		}
-
-		co_await addConnection (move (new_connection));
-	)
-	return true;
-};
-
-auto onDisconnect = [] <Connection T> (T&& disconnect)
+int main(int argc, char **argv)
 {
 
-};
+	auto addConnection = []<Connection T>(T &&new_connection)
+	{
+		// push (connected, move (new_connection));
+	};
 
-auto incomingMessage = [] <Connection T> (T&& from)
-{
+	auto const acceptConnection = []<Connection T>(T &&new_connection) -> bool
+	{
+		EAT(
+			// we can use the operator co_await to wait for something without blocking the currently executing thread
+			if (co_await alreadyConnected(new_connection)) {
+				return false;
+			}
 
-};
+			co_await addConnection(move(new_connection));)
+		return true;
+	};
 
-auto sendMessage = [] <Connection T> (T&& to)
-{
-	
-};
+	auto onDisconnect = []<Connection T>(T &&disconnect) {
 
-int main (int argc, char ** argv)
-{
-	
-	auto s = make_server (
-		atoi (argv [1]),
-		acceptConnection, 
-		onDisconnect, 
-		incomingMessage, 
-		sendMessage
-	);
+	};
+
+	auto incomingMessage = []<Connection T>(T &&from) {
+
+	};
+
+	auto sendMessage = []<Connection T>(T &&to) {
+
+	};
+
+	auto s = make_server(
+		atoi(argv[1]),
+		acceptConnection,
+		onDisconnect,
+		incomingMessage,
+		sendMessage);
+
+	s.start();
 
 	// auto i = nr_of_threads ();
 
@@ -88,11 +80,6 @@ int main (int argc, char ** argv)
 	// 	cout << "usage >> " << "<localPORT>" << endl;
 	// 	return 1;
 	// }
-
-
-	
-
-	
 
 	// process a clients message and return a response
 	// auto&& m = [](connection&& c, string&& msg) -> string
@@ -106,14 +93,8 @@ int main (int argc, char ** argv)
 
 	// };
 
-
-
-
-
 	// Server auto s = make_server(move(m), atoi (argv [1]));
 
-
-	
 	// std::cout << "port >> " << s.port () << std::endl;
 
 	// s.start();
