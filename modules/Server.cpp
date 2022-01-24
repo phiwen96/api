@@ -1,20 +1,5 @@
 module;
 
-export module Server;
-
-
-
-import Headers;
-
-
-
-
-
-export import Client;
-export import Messenger;
-export import Core;
-export import Connection;
-
 #include <signal.h>
 #include <poll.h>
 #include <fcntl.h>
@@ -31,6 +16,22 @@ export import Connection;
 #include <netdb.h>
 #include <bits/socket.h>
 
+export module Server;
+
+
+
+// import Headers;
+
+export import Connection;
+
+/*
+export import Client;
+export import Messenger;
+export import Core;
+export import Connection;
+
+
+
 #define fwd(x) std::forward<decltype(x)>(x)
 
 auto is_socket_non_blocking(int sockid) -> bool
@@ -46,19 +47,19 @@ auto make_socket_non_blocking(int sockid) -> bool
 
 export
 {
-	/*
-		A "Server" should be able to listen to a specific port
-		and handle connections and communications with clients.
-		It doesn't really care for the actual messages sent
-		back and forth, it focuses more on the networking fancy stuff.
-		Therefore, it must be initialized with a "Messenger" object
-		which can take care on the gossip part.
-		You should also be able to "start()" and "stop()" a "Server".
+	
+		// A "Server" should be able to listen to a specific port
+		// and handle connections and communications with clients.
+		// It doesn't really care for the actual messages sent
+		// back and forth, it focuses more on the networking fancy stuff.
+		// Therefore, it must be initialized with a "Messenger" object
+		// which can take care on the gossip part.
+		// You should also be able to "start()" and "stop()" a "Server".
 
-		TODO
-		* use coroutines
-		* use concepts
-	*/
+		// TODO
+		// * use coroutines
+		// * use concepts
+	
 
 	template <typename server>
 	concept Server = requires(server && s)
@@ -260,3 +261,4 @@ export
 		return server<accept_connection, on_disconnect, incoming_message, send_message>{port, acceptConnection, onDisconnect, incomingMessage, sendMessage};
 	}
 }
+*/

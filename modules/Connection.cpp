@@ -18,7 +18,7 @@ module;
 
 export module Connection;
 
-import Core;
+export import Core;
 
 
 export

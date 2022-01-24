@@ -1,13 +1,18 @@
 // server.cpp
 
-#include <stdlib.h>
-import Server;
+// #include <stdlib.h>
+// import Server;
+// import Connection;
+// import Connection;
+
 // import Darwin;
-import Messenger;
-import Usr;
-import Server;
-import Http;
-import Connection;
+// import Messenger;
+// import Usr;
+// import Server;
+// import Http;
+// import Connection;
+
+import Same;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
 
@@ -27,6 +32,8 @@ import Connection;
 // {
 // 	accept_connection acceptConnection;
 // };
+
+EAT(
 
 auto connected = vector <connection> {};
 
@@ -64,18 +71,18 @@ auto sendMessage = [] <Connection T> (T&& to)
 	
 };
 
+)
 
-
-auto main (int argc, char ** argv) -> int
+int main (int argc, char ** argv)
 {
 	
-	auto s = make_server (
-		atoi (argv [1]),
-		acceptConnection, 
-		onDisconnect, 
-		incomingMessage, 
-		sendMessage
-	);
+	// auto s = make_server (
+	// 	atoi (argv [1]),
+	// 	acceptConnection, 
+	// 	onDisconnect, 
+	// 	incomingMessage, 
+	// 	sendMessage
+	// );
 
 	// auto i = nr_of_threads ();
 
