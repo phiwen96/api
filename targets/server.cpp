@@ -11,6 +11,7 @@
 // import Server;
 // import Http;
 // import Connection;
+#include <iostream>
 #include <stdlib.h>
 import Server;
 
@@ -65,13 +66,13 @@ int main(int argc, char **argv)
 	};
 
 	auto s = make_server(
-		atoi(argv[1]),
+		argv[1],
 		acceptConnection,
 		onDisconnect,
 		incomingMessage,
 		sendMessage);
 
-	s.start();
+	// s.start();
 
 	// auto i = nr_of_threads ();
 

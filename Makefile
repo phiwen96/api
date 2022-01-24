@@ -60,7 +60,7 @@ $(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
 $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o#$(MODULES_DIR)/Convertible.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o

@@ -12,7 +12,7 @@ module;
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
+// #include <arpa/inet.h>
 #include <netdb.h>
 #include <bits/socket.h>
 #include <sys/epoll.h>
@@ -75,31 +75,65 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		server(server &&) = delete;
 		server(server const &) = delete;
 		server(
-			int port,
+			char const* port,
 			accept_connection &acceptConnection,
 			on_disconnect &onDisconnect,
 			incoming_message &incomingMessage,
 			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
 		{
-			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
+			addrinfo* available;
+
+			auto hints = addrinfo 
 			{
-				perror("socket error");
+				.ai_flags = AI_PASSIVE,
+				.ai_family = AF_UNSPEC,
+				.ai_socktype = SOCK_STREAM
+			};
+
+			if (getaddrinfo (NULL, port, &hints, &available) == -1)
+			{
+				perror ("getaddrinfo");
 				throw;
 			}
 
-			// set socket to non-blocking (for async)
-			fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
-
-
-			if (bind(_sockid, (struct sockaddr *)&detail, sizeof(detail)) == -1)
+			addrinfo* i;
+			for (i = available; i != nullptr; i = i -> ai_next)
 			{
-				perror("bind error");
+				if ((_sockid = socket (i->ai_family, i->ai_socktype, i->ai_protocol)) == -1)
+				{
+					perror ("socket");
+					continue;
+				}
+				int yes = 1;
+				if (setsockopt (_sockid, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int)) == -1)
+				{
+					perror ("setsockopt");
+					continue;
+				}
+				// fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+				if (bind (_sockid, i->ai_addr, i->ai_addrlen) == -1)
+				{
+					close (_sockid);
+					perror ("bind");
+					continue;
+				}
+				break;
 			}
 
-			if (listen(_sockid, 10) == -1)
+			freeaddrinfo (available);
+
+			if (i == nullptr)
+			{
+				fprintf (stderr, "server: failed to bind\n");
+				return;
+			}
+
+			if (listen (_sockid, 10) == -1)
 			{
 				perror("listen error");
 			}
+
+			
 		}
 
 		auto start()
@@ -140,6 +174,10 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		incoming_message &incomingMessage;
 		send_message &sendMessage;
 
+		struct sockaddr_in 
+		{
+			
+		} detail;
 
 		
 		int _sockid;
@@ -147,7 +185,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 	};
 
 	export template <typename accept_connection,typename on_disconnect,typename incoming_message,typename send_message>
-	auto make_server(int port,accept_connection &acceptConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage,send_message &sendMessage)->auto
+	auto make_server(char const* port,accept_connection &acceptConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage,send_message &sendMessage)->auto
 	{
 		return server<accept_connection, on_disconnect, incoming_message, send_message>{port, acceptConnection, onDisconnect, incomingMessage, sendMessage};
 	}
