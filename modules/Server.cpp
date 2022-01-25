@@ -68,7 +68,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		s.stop();
 	};
 
-	export template <typename accept_connection,
+	export template <typename new_connection,
 		typename on_disconnect,
 		typename incoming_message,
 		typename send_message>
@@ -78,15 +78,15 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		server(server const &) = delete;
 		server(
 			char const* port,
-			accept_connection &acceptConnection,
+			new_connection &newConnection,
 			on_disconnect &onDisconnect,
 			incoming_message &incomingMessage,
-			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
+			send_message &sendMessage) : newConnection{newConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
 		{
 			if ((events_fd = epoll_create1 (0)) == -1)
 			{
 				perror ("epoll_create1");
-				return;
+				throw;
 			}
 
 			addrinfo* available;
@@ -126,6 +126,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 					perror ("bind");
 					continue;
 				}
+
 				break;
 			}
 
@@ -175,19 +176,13 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				int sockid;
 				int port;
 				unsigned int len = sizeof(addr);
+
 			} remote;
 
-			auto events_fd = epoll_create1 (0);
-
-			if (events_fd == -1)
-			{
-				perror ("epoll_create1");
-				return;
-			}
 
 			for (;;)
 			{
-				auto happend_events = epoll_wait (events[0].data.fd, events.data(), events.size(), -1);
+				auto happend_events = epoll_wait (events_fd, events.data(), events.size(), -1);
 
 				for (auto i = 0; i < happend_events; ++i)
 				{
@@ -199,27 +194,16 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 							continue;
 						}
 
-						getpeername(remote.sockid, (struct sockaddr*)&remote.addr, &remote.len);
+						newConnection 
+						(
+							connection 
+							{
+								remote.sockid
+							}
+						);
 
-						// deal with both IPv4 and IPv6:
-						if (remote.addr.ss_family == AF_INET) 
-						{
-							struct sockaddr_in *s = (struct sockaddr_in *)&remote.addr;
-							remote.port = ntohs(s->sin_port);
-							inet_ntop(AF_INET, &s->sin_addr, remote.ip_address, sizeof remote.ip_address);
-
-						} else
-						{ // AF_INET6
-							struct sockaddr_in6 *s = (struct sockaddr_in6 *)&remote.addr;
-							remote.port = ntohs(s->sin6_port);
-							inet_ntop(AF_INET6, &s->sin6_addr, remote.ip_address, sizeof remote.ip_address);
-						}
-
-						fcntl (remote.sockid, F_SETFL, O_NONBLOCK | FASYNC);
-
+											
 						
-
-
 
 						// EPOLLIN|EPOLLRDHUP|EPOLLET
 					
@@ -251,7 +235,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 
 
 	private:
-		accept_connection &acceptConnection;
+		new_connection &newConnection;
 		on_disconnect &onDisconnect;
 		incoming_message &incomingMessage;
 		send_message &sendMessage;
@@ -265,9 +249,9 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		bool _running;
 	};
 
-	export template <typename accept_connection,typename on_disconnect,typename incoming_message,typename send_message>
-	auto make_server(char const* port,accept_connection &acceptConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage,send_message &sendMessage)->auto
+	export template <typename new_connection,typename on_disconnect,typename incoming_message,typename send_message>
+	auto make_server(char const* port,new_connection &newConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage,send_message &sendMessage)->auto
 	{
-		return server<accept_connection, on_disconnect, incoming_message, send_message>{port, acceptConnection, onDisconnect, incomingMessage, sendMessage};
+		return server<new_connection, on_disconnect, incoming_message, send_message>{port, newConnection, onDisconnect, incomingMessage, sendMessage};
 	}
 

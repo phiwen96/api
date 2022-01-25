@@ -13,7 +13,9 @@
 // import Connection;
 #include <iostream>
 #include <stdlib.h>
+#include <coroutine>
 import Server;
+using std::cout, std::endl;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
 
@@ -33,15 +35,22 @@ import Server;
 // };
 
 
+
+
 int main(int argc, char **argv)
 {
+
+
+
+	return 0;
+
 
 	auto addConnection = []<Connection T>(T &&new_connection)
 	{
 		// push (connected, move (new_connection));
 	};
 
-	auto const acceptConnection = []<Connection T>(T &&new_connection) -> bool
+	auto const newConnection = []<Connection T>(T &&new_connection)
 	{
 		EAT(
 			// we can use the operator co_await to wait for something without blocking the currently executing thread
@@ -50,7 +59,11 @@ int main(int argc, char **argv)
 			}
 
 			co_await addConnection(move(new_connection));)
-		return true;
+
+		
+	
+		cout << new_connection << endl;
+	
 	};
 
 	auto onDisconnect = []<Connection T>(T &&disconnect) {
@@ -67,7 +80,7 @@ int main(int argc, char **argv)
 
 	auto s = make_server(
 		argv[1],
-		acceptConnection,
+		newConnection,
 		onDisconnect,
 		incomingMessage,
 		sendMessage);

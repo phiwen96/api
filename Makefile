@@ -43,7 +43,7 @@ BUILD_DIRS := $(foreach dir, $(_BUILD_DIRS), $(addprefix $(BUILD_DIR)/, $(dir)))
 
 ######################################
 # all: $(APPS)
-all: $(APPS_DIR)/server
+all: $(APPS_DIR)/server $(APPS_DIR)/client
 
 ######## Test ###########
 $(APPS_DIR)/test: $(OBJECTS_DIR)/test.o
@@ -53,17 +53,17 @@ $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######## Client ###########
-$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@
+$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+	$(CXX) $(CXX_FLAGS) -o $@ $^
 
-$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp
-	$(CXX) $(CXX_FLAGS) -c $< -o $@
+$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+	$(CXX) $(CXX_FLAGS) -c $< -o $@ $(filter-out, $<, $^)
 
 ######## Server ###########
 $(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
-$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o#$(MODULES_DIR)/Convertible.o#$(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o
+$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ $(filter-out, $<, $^)
 # $(info $$NAMES is [${NAMES}])
 
@@ -79,14 +79,14 @@ $(MODULES_DIR)/Server.o: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Connection.o #
 # $(MODULES_DIR)/Usr.o: $(SOURCES_DIR)/Usr.cpp $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
 # 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
-# $(MODULES_DIR)/Client.o: $(SOURCES_DIR)/Client.cpp $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
-# 	$(CXX) -c $(CXX_FLAGS) $@ 
+$(MODULES_DIR)/Client.o: $(SOURCES_DIR)/Client.cpp $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
+	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
 $(MODULES_DIR)/Connection.o: $(SOURCES_DIR)/Connection.cpp $(MODULES_DIR)/Core.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
-# $(MODULES_DIR)/Http.o: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Core.o 
-# 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
+$(MODULES_DIR)/Http.o: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Core.o 
+	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
 # $(MODULES_DIR)/Ready.o: $(SOURCES_DIR)/Ready.cpp
 # 	$(CXX) $(CXX_FLAGS) -c $< -o $@

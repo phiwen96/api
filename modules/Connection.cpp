@@ -2,89 +2,83 @@ module;
 // import std;
 
 // #include <thread>
+#include <fcntl.h>
+#include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+#include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#include <malloc.h>
-// #include <iostream>
-// #include <string>
+#include <bits/socket.h>
+#include <sys/epoll.h>
+#include <vector>
+#include <utility>
+#include <iostream>
 
 export module Connection;
 
 export import Core;
-
 
 export
 {
 	template <typename T>
 	concept Connection = requires(T t, char const *s)
 	{
-		t.remoteIP ();
+		t.remoteIP();
 	};
 
 	struct connection
 	{
-		connection(int sockid) noexcept : _sockid{sockid}
+		connection(int remote_sockid) noexcept : _remote_sockid {remote_sockid}
 		{
+			auto remote_addr = sockaddr_storage {};
 
-			// connect (_sockid, )
-		}
-		connection(connection &&) = default;
-		connection(connection const &) = default;
-		auto remoteIP() const -> String auto
-		{
-			// return "hej";
-			struct
-			{
-				sockaddr_storage addr;
-				char* ip_address;
-				int port;
-				unsigned int len = sizeof(addr);
-			} detail;
+			socklen_t remote_len = sizeof (remote_addr);
 
-			detail.ip_address = (char*) malloc (sizeof (char) * INET6_ADDRSTRLEN + 1);
-			detail.ip_address [INET6_ADDRSTRLEN] = '\0';
-
-			if (getpeername(_sockid, (struct sockaddr *)&detail.addr, &detail.len) == -1)
-			{
-				perror("getpeername error");
-				throw;
-			}
+			getpeername(remote_sockid, (struct sockaddr *)&remote_addr, &remote_len);
 
 			// deal with both IPv4 and IPv6:
-			if (detail.addr.ss_family == AF_INET)
+			if (remote_addr.ss_family == AF_INET)
 			{
-				struct sockaddr_in *s = (struct sockaddr_in *)&detail.addr;
-				detail.port = ntohs(s->sin_port);
-				inet_ntop(AF_INET, &s->sin_addr, detail.ip_address, sizeof detail.ip_address);
+				struct sockaddr_in *s = (struct sockaddr_in *)&remote_addr;
+				_remote_port = ntohs(s->sin_port);
+				inet_ntop(AF_INET, &s->sin_addr, _remote_ip_address, sizeof _remote_ip_address);
 			}
 			else
 			{ // AF_INET6
-				struct sockaddr_in6 *s = (struct sockaddr_in6 *)&detail.addr;
-				detail.port = ntohs(s->sin6_port);
-				inet_ntop(AF_INET6, &s->sin6_addr, detail.ip_address, sizeof detail.ip_address);
+				struct sockaddr_in6 *s = (struct sockaddr_in6 *)&remote_addr;
+				_remote_port = ntohs(s->sin6_port);
+				inet_ntop(AF_INET6, &s->sin6_addr, _remote_ip_address, sizeof _remote_ip_address);
 			}
-			// std::cout << detail.ip_address << std::endl;
 
-			return detail.ip_address; // std::move (std::string {detail.ip_address});
+			fcntl(_remote_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+		}
+		connection(connection &&) = default;
+		connection(connection const &) = default;
+		auto remoteIP() const -> String auto const&
+		{
+			return _remote_ip_address;
+		}
+		auto remotePort () const -> int 
+		{
+			return _remote_port;
 		}
 
-	
-		// friend auto operator<<(std::ostream &os, connection const &me) -> std::ostream&
-		// {
-		// 	os << me.remoteIP ();
-		// 	return os;
-		// }
+		friend auto operator<<(std::ostream &os, connection const &me) -> std::ostream &
+		{
+			os << me._remote_ip_address << ":" << me._remote_port;
+			return os;
+		}
 
 	private:
-		// std::string _ip_address;
-		int _sockid;
+		sockaddr_storage _addr;
+		char _remote_ip_address[INET6_ADDRSTRLEN];
+		int _remote_port;
+		int _remote_sockid;
 	};
 }
