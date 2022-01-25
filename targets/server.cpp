@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 		incomingMessage,
 		sendMessage);
 
-	// s.start();
+	s.start();
 
 	// auto i = nr_of_threads ();
 

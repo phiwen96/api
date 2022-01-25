@@ -16,6 +16,8 @@ module;
 #include <netdb.h>
 #include <bits/socket.h>
 #include <sys/epoll.h>
+#include <vector>
+#include <utility>
 // #include <iosream>
 
 export module Server;
@@ -81,6 +83,12 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 			incoming_message &incomingMessage,
 			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
 		{
+			if ((events_fd = epoll_create1 (0)) == -1)
+			{
+				perror ("epoll_create1");
+				return;
+			}
+
 			addrinfo* available;
 
 			auto hints = addrinfo 
@@ -97,6 +105,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 			}
 
 			addrinfo* i;
+
 			for (i = available; i != nullptr; i = i -> ai_next)
 			{
 				if ((_sockid = socket (i->ai_family, i->ai_socktype, i->ai_protocol)) == -1)
@@ -133,8 +142,29 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				perror("listen error");
 			}
 
-			
+			events.reserve (20);
+
+			auto&& listen_event = epoll_event {};
+
+			listen_event.events = EPOLLIN | EPOLLET;
+			listen_event.data.fd = _sockid;
+
+			events.push_back (std::move (listen_event));
+
+			if (epoll_ctl (events_fd, EPOLL_CTL_ADD, _sockid, &events[0]) == -1)
+			{
+				perror ("epoll_ctl");
+				close (events_fd);
+				return;
+			}
 		}
+
+		~server()
+		{
+			close (events_fd);
+		}
+
+
 
 		auto start()
 		{
@@ -146,15 +176,38 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				char ip_address[INET6_ADDRSTRLEN];
 			} remote;
 
-			// auto events_fd = epoll_create1 (0);
+			auto events_fd = epoll_create1 (0);
 
-			// if (events_fd == -1)
-			// {
-			// 	perror ("epoll_create1");
-			// 	return;
-			// }
+			if (events_fd == -1)
+			{
+				perror ("epoll_create1");
+				return;
+			}
 
-			// auto* events = (epoll_event) malloc (sizeof (epoll_event) * 100);
+			for (;;)
+			{
+				auto happend_events = epoll_wait (events[0].data.fd, events.data(), events.size(), -1);
+
+				for (auto i = 0; i < happend_events; ++i)
+				{
+					if (events[i].data.fd == _sockid) // new connection
+					{
+						// EPOLLIN|EPOLLRDHUP|EPOLLET
+
+
+					} else if (events[n].events & EPOLLRDHUP) // disconnection, peer socket is closed 
+					{
+
+					} else if (events[i].events & EPOLLIN) // new message
+					{
+
+					}
+				}
+
+			}
+
+			
+
 
 			// ::new (events) epoll_event {.events = EPOLLIN | EPOLLET, .fd = _sockid};
 
@@ -174,12 +227,11 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		incoming_message &incomingMessage;
 		send_message &sendMessage;
 
-		struct sockaddr_in 
-		{
-			
-		} detail;
 
-		
+
+		std::vector <epoll_event> events;
+
+		int events_fd;
 		int _sockid;
 		bool _running;
 	};

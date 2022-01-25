@@ -3,7 +3,7 @@
 CXX := /usr/bin/g++-11
 # CXX_FLAGS = -std=gnu++2b -stdlib=libc++ -fmodules-ts -fmodules -fbuiltin-module-map -fimplicit-modules -fimplicit-module-maps -fprebuilt-module-path=.
 # CXX_FLAGS = -std=gnu++2b -fmodules -fbuiltin-module-map
-CXX_FLAGS = -std=c++20 -fmodules-ts
+CXX_FLAGS = -std=gnu++2a -fmodules-ts
 ############### External C++ libraries  ###################
 LIB_NLOHMANN := -I/opt/homebrew/Cellar/nlohmann-json/3.10.5
 
