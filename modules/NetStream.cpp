@@ -17,6 +17,7 @@ module;
 #include <vector>
 #include <utility>
 #include <iostream>
+#include <array>
 export module NetStream;
 using std::cout, std::endl;
 // using std::string;
@@ -133,6 +134,8 @@ export
 			{
 				if (me.events[i].data.fd == me.sock_fd) // new connection
 				{
+					cout << "connect" << endl;
+
 					if ((remote.sockid = accept(me.sock_fd, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
 					{
 						perror("accept");
@@ -143,7 +146,7 @@ export
 
 					auto &&event = epoll_event{};
 
-					event.events = EPOLLIN | EPOLLET;
+					event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
 					event.data.fd = remote.sockid;
 
 					if (me.events_size >= me.events_max_size)
@@ -165,9 +168,31 @@ export
 				}
 				else if (me.events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed
 				{
+					cout << "disconnect" << endl;
 				}
 				else if (me.events[i].events & EPOLLIN) // new message
 				{
+					cout << "message" << endl;
+					struct 
+					{
+						char* data = (char*) malloc (1024 * sizeof (char));
+						int size = 0;
+						int max_size = 1024;
+
+					} buffer;
+
+
+					while (buffer.size += recv (me.events[i].data.fd, buffer.data + buffer.size, buffer.max_size - buffer.size - 1, 0),
+						buffer.size == buffer.max_size - 1)
+					{
+						// buffer is maxed out
+						buffer.max_size *= 2;
+						buffer.data = (char*) realloc (buffer.data, buffer.max_size * sizeof (char));
+					}
+
+					buffer.data[buffer.size] = '\0';
+					dstt = buffer.data;
+					
 				}
 			}
 
@@ -263,24 +288,37 @@ export
 
 		friend auto operator >> (clientStream &me, char const *&dstt) -> clientStream&
 		{
-			auto happend_events = epoll_wait (me.events_fd, me.events, 1, -1);
+			struct 
+			{
+				char* data = (char*) malloc (1024 * sizeof (char));
+				int size;
+				int max_size;
+			} buffer;
+
+			// auto *buffer = malloc (1024 * sizeof (char));
+
+			// buffer [0] = '\0';
+
 			
+
+			auto happend_events = epoll_wait (me.events_fd, me.events, 1, -1);
+
 			for (int i = 0; i < happend_events; ++i)
 			{
-				if (events[i].events & EPOLLIN) // data to be read
+				if (me.events[i].events & EPOLLIN) // data to be read
 				{
-					while (recv (me.sockid, ))
-					{
-						/* code */
-					}
+					int numbytes;
+
+					// while (numbytes = (recv (me.sockid, buffer.data(), buffer.size() - 1, 0)) > 0)
+					// {
+					// 	dst = (char*) realloc (dst, numbytes * sizeof (char));
+					// 	memcpy (dst, )
+					// 	/* code */
+					// }
 					
 				}
 			}
 			
-			auto *&dst = (char *&)dstt;
-			dst = (char *)malloc(sizeof(char) * 10);
-			dst[0] = 'h';
-			dst[1] = '\0';
 			return me;
 		}
 
