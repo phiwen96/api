@@ -12,7 +12,7 @@ module;
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-// #include <arpa/inet.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <bits/socket.h>
 #include <sys/epoll.h>
@@ -119,7 +119,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 					perror ("setsockopt");
 					continue;
 				}
-				// fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+				fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
 				if (bind (_sockid, i->ai_addr, i->ai_addrlen) == -1)
 				{
 					close (_sockid);
@@ -171,9 +171,10 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 			struct
 			{
 				sockaddr_storage addr;
-				unsigned int len = sizeof(addr);
-				int sockid;
 				char ip_address[INET6_ADDRSTRLEN];
+				int sockid;
+				int port;
+				unsigned int len = sizeof(addr);
 			} remote;
 
 			auto events_fd = epoll_create1 (0);
@@ -192,11 +193,39 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				{
 					if (events[i].data.fd == _sockid) // new connection
 					{
+						if ((remote.sockid = accept (_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
+						{
+							perror ("accept");
+							continue;
+						}
+
+						getpeername(remote.sockid, (struct sockaddr*)&remote.addr, &remote.len);
+
+						// deal with both IPv4 and IPv6:
+						if (remote.addr.ss_family == AF_INET) 
+						{
+							struct sockaddr_in *s = (struct sockaddr_in *)&remote.addr;
+							remote.port = ntohs(s->sin_port);
+							inet_ntop(AF_INET, &s->sin_addr, remote.ip_address, sizeof remote.ip_address);
+
+						} else
+						{ // AF_INET6
+							struct sockaddr_in6 *s = (struct sockaddr_in6 *)&remote.addr;
+							remote.port = ntohs(s->sin6_port);
+							inet_ntop(AF_INET6, &s->sin6_addr, remote.ip_address, sizeof remote.ip_address);
+						}
+
+						fcntl (remote.sockid, F_SETFL, O_NONBLOCK | FASYNC);
+
+						
+
+
+
 						// EPOLLIN|EPOLLRDHUP|EPOLLET
-
-
-					} else if (events[n].events & EPOLLRDHUP) // disconnection, peer socket is closed 
+					
+					} else if (events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed 
 					{
+						
 
 					} else if (events[i].events & EPOLLIN) // new message
 					{
