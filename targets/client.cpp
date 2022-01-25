@@ -1,9 +1,12 @@
-import Client;
-import Http;
-// import std;
-import Core;
-import Connection;
+#include <iostream>
+// #include <stdlib.h>
+#include <coroutine>
+#include <vector>
 
+// #include <string>
+// import Server;
+import NetStream;
+using std::cout, std::endl, std::move, std::vector;
 // #include <nlohmann/json.hpp>
 // using namespace nlohmann;
 
@@ -20,29 +23,30 @@ auto main (int argc, char ** argv) -> int
 
 	// remote.ip_address = argv [1];
 	// remote.port = atoi (argv [2]);
-EAT(
 	if (argc != 3)
 	{
 		cout << "usage >> " << "<remoteIP> <remotePORT>" << endl;
 		return 1;
 	}
 
-	auto remoteIP = argv [1];
-	auto remotePORT = atoi (argv [2]);
-
-	auto&& m = [](connection&& serv)
-	{
-		serv.write ("hello from client");
-		cout << serv.read () << endl;
-	};
-
-	Client auto cl = client {remoteIP, remotePORT};
-
-
-	cl.write("hello from client");
-	cout << cl.read() << endl;
 	
-)
+
+	auto remoteIP = argv [1];
+	auto remotePORT = argv [2];
+
+	auto stream = clientStream {remotePORT, remoteIP};
+
+	// auto&& m = [](connection&& serv)
+	// {
+	// 	serv.write ("hello from client");
+	// 	cout << serv.read () << endl;
+	// };
+
+	// Client auto cl = client {remoteIP, remotePORT};
+
+
+	// cl.write("hello from client");
+	// cout << cl.read() << endl;
 	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 
 	// conn.write ("hello from client");

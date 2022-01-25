@@ -53,17 +53,17 @@ $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp
 	$(CXX) $(CXX_FLAGS) -c $< -o $@
 
 ######## Client ###########
-$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/NetStream.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
-$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+$(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES_DIR)/Client.o $(MODULES_DIR)/NetStream.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ $(filter-out, $<, $^)
 
 ######## Server ###########
-$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+$(APPS_DIR)/server: $(OBJECTS_DIR)/server.o $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/NetStream.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -o $@ $^
 
-$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
+$(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MODULES_DIR)/Connection.o $(MODULES_DIR)/NetStream.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/String.o $(MODULES_DIR)/Char.o $(MODULES_DIR)/Vector.o $(MODULES_DIR)/Size.o $(MODULES_DIR)/Convertible.o $(MODULES_DIR)/Same.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ $(filter-out, $<, $^)
 # $(info $$NAMES is [${NAMES}])
 
@@ -86,6 +86,9 @@ $(MODULES_DIR)/Connection.o: $(SOURCES_DIR)/Connection.cpp $(MODULES_DIR)/Core.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
 $(MODULES_DIR)/Http.o: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Core.o 
+	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
+
+$(MODULES_DIR)/NetStream.o: $(SOURCES_DIR)/NetStream.cpp $(MODULES_DIR)/Core.o 
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
 # $(MODULES_DIR)/Ready.o: $(SOURCES_DIR)/Ready.cpp

@@ -12,10 +12,14 @@
 // import Http;
 // import Connection;
 #include <iostream>
-#include <stdlib.h>
+// #include <stdlib.h>
 #include <coroutine>
-import Server;
-using std::cout, std::endl;
+#include <vector>
+
+// #include <string>
+// import Server;
+import NetStream;
+using std::cout, std::endl, std::move, std::vector;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
 
@@ -39,53 +43,66 @@ using std::cout, std::endl;
 
 int main(int argc, char **argv)
 {
+	auto port = argv [1]; 
 
+	auto stream = serverStream {port};
+
+	while (true)
+	{
+		auto in_message = "";
+
+		stream >> in_message;
+
+		// cout << in_message << endl;
+	}
+
+	
 
 
 	return 0;
 
 
-	auto addConnection = []<Connection T>(T &&new_connection)
-	{
-		// push (connected, move (new_connection));
-	};
+	// auto addConnection = []<Connection T>(T &&new_connection)
+	// {
+	// 	// push (connected, move (new_connection));
+	// };
 
-	auto const newConnection = []<Connection T>(T &&new_connection)
-	{
-		EAT(
-			// we can use the operator co_await to wait for something without blocking the currently executing thread
-			if (co_await alreadyConnected(new_connection)) {
-				return false;
-			}
+	// auto const newConnection = []<Connection T>(T &&new_connection)
+	// {
+	// 	EAT(
+	// 		// we can use the operator co_await to wait for something without blocking the currently executing thread
+	// 		if (co_await alreadyConnected(new_connection)) {
+	// 			return false;
+	// 		}
 
-			co_await addConnection(move(new_connection));)
+	// 		co_await addConnection(move(new_connection));)
 
 		
 	
-		cout << new_connection << endl;
+	// 	cout << new_connection << endl;
 	
-	};
+	// };
 
-	auto onDisconnect = []<Connection T>(T &&disconnect) {
+	// auto onDisconnect = []<Connection T>(T &&disconnect) {
 
-	};
+	// };
 
-	auto incomingMessage = []<Connection T>(T &&from) {
+	// auto incomingMessage = []<Connection T>(T &&from) {
 
-	};
+	// };
 
-	auto sendMessage = []<Connection T>(T &&to) {
+	// auto sendMessage = []<Connection T>(T &&to) {
+	// 		to << "hello from server" << endl;
+	// };
 
-	};
+	// auto s = make_server(
+	// 	argv[1],
+	// 	newConnection,
+	// 	onDisconnect,
+	// 	incomingMessage,
+	// 	sendMessage);
 
-	auto s = make_server(
-		argv[1],
-		newConnection,
-		onDisconnect,
-		incomingMessage,
-		sendMessage);
-
-	s.start();
+	// s.start();
 
 	// auto i = nr_of_threads ();
 

@@ -202,9 +202,6 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 							}
 						);
 
-											
-						
-
 						// EPOLLIN|EPOLLRDHUP|EPOLLET
 					
 					} else if (events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed 

@@ -37,7 +37,7 @@ export
 		connection(int remote_sockid) noexcept : _remote_sockid {remote_sockid}
 		{
 			auto remote_addr = sockaddr_storage {};
-
+			
 			socklen_t remote_len = sizeof (remote_addr);
 
 			getpeername(remote_sockid, (struct sockaddr *)&remote_addr, &remote_len);
@@ -60,7 +60,7 @@ export
 		}
 		connection(connection &&) = default;
 		connection(connection const &) = default;
-		auto remoteIP() const -> String auto const&
+		auto remoteIP() const -> auto const&
 		{
 			return _remote_ip_address;
 		}
