@@ -38,6 +38,10 @@ auto main (int argc, char ** argv) -> int
 
 	stream << "hello from client";
 
+	char* incoming;
+
+	stream >> incoming;
+
 	// auto&& m = [](connection&& serv)
 	// {
 	// 	serv.write ("hello from client");

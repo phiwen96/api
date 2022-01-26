@@ -47,11 +47,16 @@ int main(int argc, char **argv)
 
 	auto stream = serverStream {port};
 
+	auto incoming = remote {};
+
 	while (true)
 	{
-		char* in_message;
+		
 
-		stream >> in_message;
+		// char* in_message;
+		stream >> incoming;
+
+		stream << "hello from server";
 
 		cout << "message >> " << (char const*) in_message << endl;
 	}
