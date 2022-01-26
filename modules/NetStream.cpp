@@ -217,7 +217,7 @@ export
 
 		friend auto operator<<(serverStream &me, char const* src) -> serverStream &
 		{
-			
+			return me;
 		}
 
 	private:

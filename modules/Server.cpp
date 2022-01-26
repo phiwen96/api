@@ -26,7 +26,8 @@ export module Server;
 
 // import Headers;
 import Core;
-export import Connection;
+import Remote;
+// export import Connection;
 
 /*
 export import Client;
@@ -64,24 +65,21 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 	export template <typename server>
 	concept Server = requires(server s)
 	{
-		s.start();
-		s.stop();
+		run (s);
 	};
 
 	export template <typename new_connection,
 		typename on_disconnect,
-		typename incoming_message,
-		typename send_message>
-	struct server
+		typename incoming_message>
+	struct _server
 	{
-		server(server &&) = delete;
-		server(server const &) = delete;
-		server(
+		_server(_server &&) = delete;
+		_server(_server const &) = delete;
+		_server(
 			char const* port,
 			new_connection &newConnection,
 			on_disconnect &onDisconnect,
-			incoming_message &incomingMessage,
-			send_message &sendMessage) : newConnection{newConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
+			incoming_message &incomingMessage) : newConnection{newConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}
 		{
 			if ((events_fd = epoll_create1 (0)) == -1)
 			{
@@ -143,31 +141,33 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				perror("listen error");
 			}
 
-			events.reserve (20);
+			auto&& event = epoll_event {};
 
-			auto&& listen_event = epoll_event {};
+			event.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP;
+			event.data.fd = _sockid;
 
-			listen_event.events = EPOLLIN | EPOLLET;
-			listen_event.data.fd = _sockid;
-
-			events.push_back (std::move (listen_event));
-
-			if (epoll_ctl (events_fd, EPOLL_CTL_ADD, _sockid, &events[0]) == -1)
+			if (epoll_ctl (events_fd, EPOLL_CTL_ADD, _sockid, &event) == -1)
 			{
 				perror ("epoll_ctl");
 				close (events_fd);
 				return;
 			}
+
+			events_size = 1;
+
+			events_max_size = 64;
+
+			events = (epoll_event*) malloc (events_max_size * sizeof (epoll_event));
 		}
 
-		~server()
+		~_server()
 		{
 			close (events_fd);
 		}
 
 
 
-		auto start()
+		friend auto run (_server& me) -> void
 		{
 			struct
 			{
@@ -177,38 +177,60 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				int port;
 				unsigned int len = sizeof(addr);
 
-			} remote;
+			} rem;
 
 
 			for (;;)
 			{
-				auto happend_events = epoll_wait (events_fd, events.data(), events.size(), -1);
+				auto happend_events = epoll_wait (me.events_fd, me.events, me.events_size, -1);
 
 				for (auto i = 0; i < happend_events; ++i)
 				{
-					if (events[i].data.fd == _sockid) // new connection
+					if (me.events[i].data.fd == me._sockid) // new connection
 					{
-						if ((remote.sockid = accept (_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
+						if ((rem.sockid = accept (me._sockid, (struct sockaddr *)&rem.addr, &rem.len)) == -1)
 						{
 							perror ("accept");
 							continue;
 						}
 
-						newConnection 
-						(
-							connection 
-							{
-								remote.sockid
-							}
-						);
+						fcntl(rem.sockid, F_SETFL, O_NONBLOCK);
+
+						auto &&event = epoll_event{};
+
+						event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
+						event.data.fd = rem.sockid;
+
+						if (me.events_size >= me.events_max_size)
+						{
+							me.events_max_size *= 2;
+							me.events = (epoll_event *)realloc(me.events, sizeof(epoll_event) * me.events_max_size);
+						}
+
+						if (epoll_ctl(me.events_fd, EPOLL_CTL_ADD, rem.sockid, &event) == -1)
+						{
+							perror("epoll_ctl");
+							close(me.events_fd);
+							throw;
+						}
+
+						++me.events_size;
+
+						// me.newConnection 
+						// (
+						// 	remote 
+						// 	{
+						// 		rem.sockid
+						// 	}
+						// );
 
 						// EPOLLIN|EPOLLRDHUP|EPOLLET
 					
-					} else if (events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed 
+					} else if (me.events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed 
 					{
 						
 
-					} else if (events[i].events & EPOLLIN) // new message
+					} else if (me.events[i].events & EPOLLIN) // new message
 					{
 
 					}
@@ -235,20 +257,17 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		new_connection &newConnection;
 		on_disconnect &onDisconnect;
 		incoming_message &incomingMessage;
-		send_message &sendMessage;
-
-
-
-		std::vector <epoll_event> events;
-
+		epoll_event* events;
+		int events_max_size;
+		int events_size;
 		int events_fd;
 		int _sockid;
 		bool _running;
 	};
 
-	export template <typename new_connection,typename on_disconnect,typename incoming_message,typename send_message>
-	auto make_server(char const* port,new_connection &newConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage,send_message &sendMessage)->auto
+	export template <typename new_connection,typename on_disconnect,typename incoming_message>
+	auto make_server(char const* port,new_connection &newConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage)->auto
 	{
-		return server<new_connection, on_disconnect, incoming_message, send_message>{port, newConnection, onDisconnect, incomingMessage, sendMessage};
+		return _server<new_connection, on_disconnect, incoming_message>{port, newConnection, onDisconnect, incomingMessage};
 	}
 

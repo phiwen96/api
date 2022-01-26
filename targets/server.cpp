@@ -17,8 +17,11 @@
 #include <vector>
 
 // #include <string>
-// import Server;
-import NetStream;
+import Server;
+import Remote;
+// import NetStream;
+// import Remote;
+
 using std::cout, std::endl, std::move, std::vector;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
@@ -40,60 +43,53 @@ using std::cout, std::endl, std::move, std::vector;
 
 
 
+auto const newConnection = [] <Remote U> (U&& r)
+{
+	cout << "new connection" << endl;
+};
+
+auto const onDisconnect = [] <Remote U> (U&& r) 
+{
+
+};
+
+auto const incomingMessage = [] <Remote U> (U&& r, std::string&& msg) 
+{
+
+};
 
 int main(int argc, char **argv)
 {
-	auto port = argv [1]; 
+	auto port = argv[1];
 
-	auto stream = serverStream {port};
+	auto server = make_server(
+		port,
+		newConnection,
+		onDisconnect,
+		incomingMessage
+	);
 
-	auto incoming = remote {};
+	run (server);
 
-	while (true)
-	{
-		
+	// auto netstream = serverStream {port};
 
-		// char* in_message;
-		stream >> incoming;
+	// auto incoming = remote {};
 
-		stream << "hello from server";
+	// while (true)
+	// {
 
-		cout << "message >> " << (char const*) in_message << endl;
-	}
+	// 	netstream >> incoming;
 
-	
+	// 	netstream << "hello from server";
 
+	// 	cout << "message >> " << (char const*) in_message << endl;
+	// }
 
 	return 0;
-
 
 	// auto addConnection = []<Connection T>(T &&new_connection)
 	// {
 	// 	// push (connected, move (new_connection));
-	// };
-
-	// auto const newConnection = []<Connection T>(T &&new_connection)
-	// {
-	// 	EAT(
-	// 		// we can use the operator co_await to wait for something without blocking the currently executing thread
-	// 		if (co_await alreadyConnected(new_connection)) {
-	// 			return false;
-	// 		}
-
-	// 		co_await addConnection(move(new_connection));)
-
-		
-	
-	// 	cout << new_connection << endl;
-	
-	// };
-
-	// auto onDisconnect = []<Connection T>(T &&disconnect) {
-
-	// };
-
-	// auto incomingMessage = []<Connection T>(T &&from) {
-
 	// };
 
 	// auto sendMessage = []<Connection T>(T &&to) {

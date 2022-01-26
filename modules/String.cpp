@@ -1,23 +1,15 @@
 module;
-#include <string.h>
-#include <malloc.h>
+#include <string>
 export module String;
 
-import Same;
-import Convertible;
-export import Char;
-export import Size;
-
-// export
-// {
-// 	template <typename T>
-// 	concept String = requires (T t)
-// 	{
-// 		true;
-// 		// {clone (t)} noexcept -> Convertible <T>;
-// 		// {length (t)} noexcept -> Size;
-// 		// {t [0]} noexcept -> Char;		
-// 	};
+export
+{
+	template <typename T>
+	concept String = requires (T t)
+	{
+		std::string {t};	
+	};
+}
 
 // 	constexpr auto length (Char auto * s) noexcept -> Size auto 
 // 	{
