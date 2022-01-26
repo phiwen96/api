@@ -192,16 +192,7 @@ export
 					else if (me.events[i].events & EPOLLIN) // new message
 					{
 						cout << "message" << endl;
-						// constexpr auto start_max_size = 1024;
-						// char buf[start_max_size];
-						// auto max_size = start_max_size;
-						// int numbytes = 0;
-
-						// if ((numbytes = recv(me.events[i].data.fd, buf, max_size - 1, 0)) == -1)
-						// {
-						// 	perror("recv");
-						// 	exit(1);
-						// }
+					
 						while ((buf.numbytes += recv (me.events[i].data.fd, buf.data + buf.numbytes, buf.max_size - buf.numbytes - 1, 0)) == buf.max_size - 1)
 						{
 							// buffer is maxed out
@@ -212,7 +203,6 @@ export
 						buf.data[buf.numbytes] = '\0';
 						dstt = buf.data;
 						data_read = true;
-						// dstt = buffer.data;
 					}
 					else
 					{
@@ -221,13 +211,6 @@ export
 					}
 				}
 			}
-
-			
-
-			// auto *&dst = (char *&)dstt;
-			// dst = (char *)malloc(sizeof(char) * 10);
-			// dst[0] = 'h';
-			// dst[1] = '\0';
 			return me;
 		}
 
