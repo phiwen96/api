@@ -5,7 +5,8 @@
 
 // #include <string>
 // import Server;
-import NetStream;
+// import NetStream;
+import RemoteServer;
 using std::cout, std::endl, std::move, std::vector;
 // #include <nlohmann/json.hpp>
 // using namespace nlohmann;
@@ -31,16 +32,29 @@ auto main (int argc, char ** argv) -> int
 
 
 
+
 	auto remoteIP = argv [1];
 	auto remotePORT = argv [2];
 
-	auto stream = clientStream {remotePORT, remoteIP};
+	auto remote_server = remote_server_t {remoteIP, remotePORT};
 
-	stream << "hello from client";
+	char * message;
 
-	char* incoming;
+	remote_server << "hello from client";
 
-	stream >> incoming;
+	// remote_server >> message;
+
+	// cout << message << endl;
+
+
+
+	// auto stream = clientStream {remotePORT, remoteIP};
+
+	// stream << "hello from client";
+
+	// char* incoming;
+
+	// stream >> incoming;
 
 	// auto&& m = [](connection&& serv)
 	// {

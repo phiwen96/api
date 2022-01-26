@@ -1,5 +1,26 @@
 export module Http;
 
+import Core;
+
+export 
+{
+	template <typename T>
+	concept Http = requires (T t)
+	{
+		true;
+	};
+
+
+	template <double version>
+	struct http_t;
+
+	template <>
+	struct http_t <1.1>
+	{
+		
+	};
+}
+
 // import std;
 
 // export

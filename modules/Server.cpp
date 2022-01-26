@@ -18,15 +18,24 @@ module;
 #include <sys/epoll.h>
 #include <vector>
 #include <utility>
-// #include <iosream>
+#include <string>
+#include <iostream>
+
+// #include <experimental/net>
+// #include <experimental/netfwd>
 
 export module Server;
+import Core;
+
+
 
 
 
 // import Headers;
-import Core;
-import Remote;
+
+// export import Buffer;
+using std::cout, std::endl;
+// import Remote_client;
 // export import Connection;
 
 /*
@@ -68,7 +77,9 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		run (s);
 	};
 
-	export template <typename new_connection,
+	export template <
+		typename remote_client,
+		typename new_connection,
 		typename on_disconnect,
 		typename incoming_message>
 	struct _server
@@ -141,9 +152,9 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 				perror("listen error");
 			}
 
-			auto&& event = epoll_event {};
+			auto event = epoll_event {};
 
-			event.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP;
+			event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP;
 			event.data.fd = _sockid;
 
 			if (epoll_ctl (events_fd, EPOLL_CTL_ADD, _sockid, &event) == -1)
@@ -167,7 +178,7 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 
 
 
-		friend auto run (_server& me) -> void
+		auto run () -> void
 		{
 			struct
 			{
@@ -182,13 +193,13 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 
 			for (;;)
 			{
-				auto happend_events = epoll_wait (me.events_fd, me.events, me.events_size, -1);
+				auto happend_events = epoll_wait (events_fd, events, events_size, -1);
 
 				for (auto i = 0; i < happend_events; ++i)
 				{
-					if (me.events[i].data.fd == me._sockid) // new connection
+					if (events[i].data.fd == _sockid) // new connection
 					{
-						if ((rem.sockid = accept (me._sockid, (struct sockaddr *)&rem.addr, &rem.len)) == -1)
+						if ((rem.sockid = accept (_sockid, (struct sockaddr *)&rem.addr, &rem.len)) == -1)
 						{
 							perror ("accept");
 							continue;
@@ -201,38 +212,100 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 						event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
 						event.data.fd = rem.sockid;
 
-						if (me.events_size >= me.events_max_size)
+						if (events_size >= events_max_size)
 						{
-							me.events_max_size *= 2;
-							me.events = (epoll_event *)realloc(me.events, sizeof(epoll_event) * me.events_max_size);
+							events_max_size *= 2;
+							events = (epoll_event *)realloc(events, sizeof(epoll_event) * events_max_size);
 						}
 
-						if (epoll_ctl(me.events_fd, EPOLL_CTL_ADD, rem.sockid, &event) == -1)
+						if (epoll_ctl(events_fd, EPOLL_CTL_ADD, rem.sockid, &event) == -1)
 						{
 							perror("epoll_ctl");
-							close(me.events_fd);
+							close(events_fd);
 							throw;
 						}
 
-						++me.events_size;
+						++events_size;
 
-						// me.newConnection 
-						// (
-						// 	remote 
-						// 	{
-						// 		rem.sockid
-						// 	}
-						// );
+						newConnection 
+						(
+							remote_client 
+							{
+								rem.sockid
+							}
+						);
 
 						// EPOLLIN|EPOLLRDHUP|EPOLLET
 					
-					} else if (me.events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed 
+					} else if (events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed 
 					{
+						if (epoll_ctl(events_fd, EPOLL_CTL_DEL, events[i].data.fd, &events[i]) == -1)
+						{
+							perror("epoll_ctl");
+							throw;
+						}
+
+						if (close (events[i].data.fd) == -1)
+						{
+							perror ("close");
+						}
+
+						onDisconnect 
+						(
+							remote_client {rem.sockid}
+						);
 						
-
-					} else if (me.events[i].events & EPOLLIN) // new message
+					} else if (events[i].events & EPOLLIN) // new message
 					{
+						// cout << "new message" << endl;
 
+
+
+						auto&& buffer = buffer_t <char> {512};
+
+						auto read_bytes = read (events[i].data.fd, buffer.next(), buffer.unused() - 1);
+						
+						if (read_bytes == -1)
+						{
+							perror ("read");
+							continue;
+						}
+
+						buffer.load (read_bytes);
+
+						while (buffer.unused () <= 1) // MAXED
+						{
+							buffer.grow_by (buffer.used ());
+
+							if (read_bytes == -1)
+							{
+								perror ("read");
+								continue;
+							}
+
+							read_bytes = read (events[i].data.fd, buffer.next(), buffer.unused() - 1);
+
+							if (read_bytes == -1)
+							{
+								perror ("read");
+								// continue;
+							} else if (read_bytes == 0)
+							{
+								break;
+								
+							} else 
+							{
+								buffer.load (read_bytes);
+							}
+						}
+
+						buffer.data()[buffer.used()] = '\0';
+
+						// cout << "sending buffer" << endl;
+
+						incomingMessage (remote_client {rem.sockid}, std::move (buffer));
+						// cout << "sent buffer" << endl;
+						// buffer.reset();
 					}
 				}
 
@@ -265,9 +338,9 @@ inline auto make_socket_non_blocking(int sockid) -> bool
 		bool _running;
 	};
 
-	export template <typename new_connection,typename on_disconnect,typename incoming_message>
+	export template <typename remote_client, typename new_connection,typename on_disconnect,typename incoming_message>
 	auto make_server(char const* port,new_connection &newConnection,on_disconnect &onDisconnect,incoming_message &incomingMessage)->auto
 	{
-		return _server<new_connection, on_disconnect, incoming_message>{port, newConnection, onDisconnect, incomingMessage};
+		return _server<remote_client, new_connection, on_disconnect, incoming_message>{port, newConnection, onDisconnect, incomingMessage};
 	}
 

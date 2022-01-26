@@ -50,6 +50,24 @@
 		"stdexcept": "cpp",
 		"streambuf": "cpp",
 		"typeinfo": "cpp",
-		"coroutine": "cpp"
+		"coroutine": "cpp",
+		"buffer": "cpp",
+		"internet": "cpp",
+		"socket": "cpp",
+		"chrono": "cpp",
+		"condition_variable": "cpp",
+		"cstring": "cpp",
+		"ctime": "cpp",
+		"forward_list": "cpp",
+		"list": "cpp",
+		"executor": "cpp",
+		"io_context": "cpp",
+		"netfwd": "cpp",
+		"ratio": "cpp",
+		"timer": "cpp",
+		"future": "cpp",
+		"mutex": "cpp",
+		"semaphore": "cpp",
+		"stop_token": "cpp"
 	}
 }

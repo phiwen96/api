@@ -18,7 +18,8 @@
 
 // #include <string>
 import Server;
-import Remote;
+import RemoteClient;
+import Core;
 // import NetStream;
 // import Remote;
 
@@ -43,33 +44,34 @@ using std::cout, std::endl, std::move, std::vector;
 
 
 
-auto const newConnection = [] <Remote U> (U&& r)
+auto const newConnection = [] <RemoteClient U> (U&& r)
 {
 	cout << "new connection" << endl;
 };
 
-auto const onDisconnect = [] <Remote U> (U&& r) 
+auto const onDisconnect = [] <RemoteClient U> (U&& r) 
 {
-
+	cout << "disconnect >> " << endl;
 };
 
-auto const incomingMessage = [] <Remote U> (U&& r, std::string&& msg) 
+auto const incomingMessage = [] <RemoteClient U> (U&& r, buffer_t <char> && msg) 
 {
-
+	cout << "incoming message >> " << msg << endl;
 };
 
 int main(int argc, char **argv)
 {
 	auto port = argv[1];
 
-	auto server = make_server(
+	auto server = make_server <remote_client_t>
+	(
 		port,
 		newConnection,
 		onDisconnect,
 		incomingMessage
 	);
 
-	run (server);
+	server.run();
 
 	// auto netstream = serverStream {port};
 
@@ -137,7 +139,6 @@ int main(int argc, char **argv)
 
 	// auto s = server {std::move (m), "8080"};
 	// serve("8080", callback);
-	return 0;
 }
 
 // "HTTP/1.1 200 OK\r\n"

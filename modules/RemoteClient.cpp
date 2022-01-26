@@ -16,22 +16,22 @@ module;
 #include <vector>
 #include <utility>
 #include <iostream>
-export module Remote;
+export module RemoteClient;
 
 import Core;
 
 export 
 {
 	template <typename T>
-	concept Remote = requires (T t)
+	concept RemoteClient = requires (T t)
 	{
 		{remoteIP (t)} -> String;
 		{remotePort (t)} -> Same <int>;
 	};
 
-	struct remote
+	struct remote_client_t
 	{
-		remote(int remote_sockid) noexcept : _remote_sockid {remote_sockid}
+		remote_client_t(int remote_sockid) noexcept : _remote_sockid {remote_sockid}
 		{
 			auto remote_addr = sockaddr_storage {};
 			
@@ -55,18 +55,18 @@ export
 
 			fcntl(_remote_sockid, F_SETFL, O_NONBLOCK | FASYNC);
 		}
-		remote(remote &&) = delete;
-		remote(remote const &) = delete;
-		friend auto remoteIP(remote const& me) -> std::string
+		remote_client_t(remote_client_t &&) = delete;
+		remote_client_t(remote_client_t const &) = delete;
+		friend auto remoteIP(remote_client_t const& me) -> std::string
 		{
 			return me._remote_ip_address;
 		}
-		friend auto remotePort (remote const& me) -> int 
+		friend auto remotePort (remote_client_t const& me) -> int 
 		{
 			return me._remote_port;
 		}
 
-		friend auto operator<<(std::ostream &os, remote const &me) -> std::ostream &
+		friend auto operator<<(std::ostream &os, remote_client_t const &me) -> std::ostream &
 		{
 			os << me._remote_ip_address << ":" << me._remote_port;
 			return os;
