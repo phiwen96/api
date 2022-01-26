@@ -19,6 +19,7 @@ module;
 #include <iostream>
 #include <array>
 export module NetStream;
+import Core;
 using std::cout, std::endl;
 // using std::string;
 
@@ -33,9 +34,9 @@ export
 
 	struct serverStream
 	{
-		serverStream (serverStream const&) = delete;
-		serverStream (serverStream &&) = delete;
-		serverStream(auto port) : events {nullptr}, events_max_size {10}, events_size {0}
+		serverStream(serverStream const &) = delete;
+		serverStream(serverStream &&) = delete;
+		serverStream(auto port) : events{nullptr}, events_max_size{64}, events_size{0}
 		{
 			if ((events_fd = epoll_create1(0)) == -1)
 			{
@@ -99,10 +100,11 @@ export
 
 			auto &&listen_event = epoll_event{};
 
-			listen_event.events = EPOLLIN | EPOLLET;
+			listen_event.events = EPOLLIN | EPOLLOUT | EPOLLET | EPOLLRDHUP;
 			listen_event.data.fd = sock_fd;
 
-			events = (epoll_event*) malloc (sizeof (epoll_event) * events_max_size);
+			events = (epoll_event *)malloc(sizeof(epoll_event) * events_max_size);
+			// events = calloc (events_ma)
 
 			// ::new (events) epoll_event {std::move (listen_event)};
 
@@ -110,13 +112,13 @@ export
 			{
 				perror("epoll_ctl");
 				close(events_fd);
-				return;
+				throw;
 			}
 
 			++events_size;
 		}
 
-		friend auto operator>>(serverStream &me, char const *&dstt) -> serverStream &
+		friend auto operator>>(serverStream &me, char *&dstt) -> serverStream &
 		{
 			struct
 			{
@@ -128,83 +130,109 @@ export
 
 			} remote;
 
-			auto n = epoll_wait(me.events_fd, me.events, me.events_size, -1);
-
-			for (auto i = 0; i < n; ++i)
+			struct 
 			{
-				if (me.events[i].data.fd == me.sock_fd) // new connection
+				char* data = (char*) malloc (sizeof (char) * 1024);
+				int max_size = 1024;
+				int numbytes = 0;
+			} buf;
+
+			auto data_read = false;
+
+			while (not data_read)
+			{
+				auto n = epoll_wait(me.events_fd, me.events, me.events_max_size, -1);
+
+				for (auto i = 0; i < n; ++i)
 				{
-					cout << "connect" << endl;
-
-					if ((remote.sockid = accept(me.sock_fd, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
+					if (me.events[i].data.fd == me.sock_fd) // new connection
 					{
-						perror("accept");
-						continue;
+						cout << "connection" << endl;
+						if ((remote.sockid = accept(me.sock_fd, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
+						{
+							perror("accept");
+							throw;
+						}
+
+						fcntl(remote.sockid, F_SETFL, O_NONBLOCK);
+
+						auto &&event = epoll_event{};
+
+						event.events = EPOLLIN | EPOLLOUT | EPOLLRDHUP | EPOLLET;
+						event.data.fd = remote.sockid;
+
+						if (me.events_size >= me.events_max_size)
+						{
+							me.events_max_size *= 2;
+							me.events = (epoll_event *)realloc(me.events, sizeof(epoll_event) * me.events_max_size);
+						}
+
+						if (epoll_ctl(me.events_fd, EPOLL_CTL_ADD, remote.sockid, &event) == -1)
+						{
+							perror("epoll_ctl");
+							close(me.events_fd);
+							throw;
+						}
+
+						++me.events_size;
+
+						// EPOLLIN|EPOLLRDHUP|EPOLLET
 					}
 
-					fcntl(remote.sockid, F_SETFL, O_NONBLOCK | FASYNC);
-
-					auto &&event = epoll_event{};
-
-					event.events = EPOLLIN | EPOLLET | EPOLLRDHUP;
-					event.data.fd = remote.sockid;
-
-					if (me.events_size >= me.events_max_size)
+					else if (me.events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed
 					{
-						me.events_max_size *= 2;
-						me.events = (epoll_event*) realloc (me.events, sizeof (epoll_event) * me.events_max_size);
+						cout << "disconnection" << endl;
+
+						if (epoll_ctl(me.events_fd, EPOLL_CTL_DEL, me.events[i].data.fd, &me.events[i]) == -1)
+						{
+							perror("epoll_ctl");
+							throw;
+						}
 					}
-
-					if (epoll_ctl(me.events_fd, EPOLL_CTL_ADD, remote.sockid, &event) == -1)
+					else if (me.events[i].events & EPOLLIN) // new message
 					{
-						perror("epoll_ctl");
-						close(me.events_fd);
-						return me;
+						cout << "message" << endl;
+						// constexpr auto start_max_size = 1024;
+						// char buf[start_max_size];
+						// auto max_size = start_max_size;
+						// int numbytes = 0;
+
+						// if ((numbytes = recv(me.events[i].data.fd, buf, max_size - 1, 0)) == -1)
+						// {
+						// 	perror("recv");
+						// 	exit(1);
+						// }
+						while ((buf.numbytes += recv (me.events[i].data.fd, buf.data + buf.numbytes, buf.max_size - buf.numbytes - 1, 0)) == buf.max_size - 1)
+						{
+							// buffer is maxed out
+							buf.max_size *= 2;
+							buf.data = (char*) realloc (buf.data, buf.max_size * sizeof (char));
+						}
+
+						buf.data[buf.numbytes] = '\0';
+						dstt = buf.data;
+						data_read = true;
+						// dstt = buffer.data;
 					}
-
-					++me.events_size;
-
-					// EPOLLIN|EPOLLRDHUP|EPOLLET
-				}
-				else if (me.events[i].events & EPOLLRDHUP) // disconnection, peer socket is closed
-				{
-					cout << "disconnect" << endl;
-				}
-				else if (me.events[i].events & EPOLLIN) // new message
-				{
-					cout << "message" << endl;
-					struct 
+					else
 					{
-						char* data = (char*) malloc (1024 * sizeof (char));
-						int size = 0;
-						int max_size = 1024;
-
-					} buffer;
-
-
-					while (buffer.size += recv (me.events[i].data.fd, buffer.data + buffer.size, buffer.max_size - buffer.size - 1, 0),
-						buffer.size == buffer.max_size - 1)
-					{
-						// buffer is maxed out
-						buffer.max_size *= 2;
-						buffer.data = (char*) realloc (buffer.data, buffer.max_size * sizeof (char));
+						cout << "error" << endl;
+						throw;
 					}
-
-					buffer.data[buffer.size] = '\0';
-					dstt = buffer.data;
-					
 				}
 			}
 
-			auto *&dst = (char *&)dstt;
-			dst = (char *)malloc(sizeof(char) * 10);
-			dst[0] = 'h';
-			dst[1] = '\0';
+			
+
+			// auto *&dst = (char *&)dstt;
+			// dst = (char *)malloc(sizeof(char) * 10);
+			// dst[0] = 'h';
+			// dst[1] = '\0';
 			return me;
 		}
 
 	private:
-		epoll_event* events;
+		epoll_event *events;
 		int events_size;
 		int events_max_size;
 		int sock_fd;
@@ -221,8 +249,6 @@ export
 				throw;
 			}
 
-			
-
 			addrinfo *servinfo{nullptr};
 
 			auto hints = addrinfo{
@@ -236,6 +262,7 @@ export
 			}
 
 			auto *i = servinfo;
+
 			// loop through all the results and connect to the first we can
 			for (; i != NULL; i = i->ai_next)
 			{
@@ -255,22 +282,20 @@ export
 
 				fcntl(sockid, F_SETFL, O_NONBLOCK | FASYNC);
 
-				auto event = epoll_event {};
-				event.events = EPOLLIN | EPOLLOUT;
+				auto event = epoll_event{};
+				event.events = EPOLLOUT;
 				event.data.fd = sockid;
 
-				epoll_ctl (events_fd, EPOLL_CTL_ADD, sockid, &event);
-
-
-				
+				epoll_ctl(events_fd, EPOLL_CTL_ADD, sockid, &event);
 
 				/*---Wait for socket connect to complete---*/
-				epoll_wait (events_fd, events, 1, -1);
+				epoll_wait(events_fd, events, 1, -1);
 
 				if (events[0].events & EPOLLOUT)
 				{
 					// connection successfull
-				} else 
+				}
+				else
 				{
 					cout << "error" << endl;
 					throw;
@@ -286,11 +311,11 @@ export
 			}
 		}
 
-		friend auto operator >> (clientStream &me, char const *&dstt) -> clientStream&
+		friend auto operator>>(clientStream &me, char const *&dstt) -> clientStream &
 		{
-			struct 
+			struct
 			{
-				char* data = (char*) malloc (1024 * sizeof (char));
+				char *data = (char *)malloc(1024 * sizeof(char));
 				int size;
 				int max_size;
 			} buffer;
@@ -299,9 +324,7 @@ export
 
 			// buffer [0] = '\0';
 
-			
-
-			auto happend_events = epoll_wait (me.events_fd, me.events, 1, -1);
+			auto happend_events = epoll_wait(me.events_fd, me.events, 1, -1);
 
 			for (int i = 0; i < happend_events; ++i)
 			{
@@ -315,22 +338,29 @@ export
 					// 	memcpy (dst, )
 					// 	/* code */
 					// }
-					
 				}
 			}
-			
+
 			return me;
 		}
 
-		friend auto operator << (clientStream& me, char const* msg) -> clientStream&
+		friend auto operator<<(clientStream &me, char const *msg) -> clientStream &
 		{
+			// auto event = epoll_event{};
+			// event.events = EPOLLOUT;
+			// event.data.fd = me.sockid;
 
-			
+			// epoll_ctl(events_fd, EPOLL_CTL_ADD, sockid, &event);
+
+			/*---Wait for socket connect to complete---*/
+			// epoll_wait(me.events_fd, events, 1, -1);
+			// sendall (me.sockid, msg);
+			send(me.sockid, msg, strlen(msg), 0);
 			return me;
 		}
 
 	private:
-		epoll_event* events;
+		epoll_event *events;
 		int events_fd;
 		int sockid;
 	};

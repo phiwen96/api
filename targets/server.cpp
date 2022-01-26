@@ -49,11 +49,11 @@ int main(int argc, char **argv)
 
 	while (true)
 	{
-		auto in_message = "";
+		char* in_message;
 
 		stream >> in_message;
 
-		// cout << in_message << endl;
+		cout << "message >> " << (char const*) in_message << endl;
 	}
 
 	

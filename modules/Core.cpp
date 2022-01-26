@@ -31,9 +31,10 @@ export
 		return &(((struct sockaddr_in6 *)sa)->sin6_addr);
 	}
 
-	inline auto sendall(int sock, char const *buf, int len)->int
+	inline auto sendall(int sock, char const *buf)->int
 	{
 		int total = 0;
+		int len = strlen (buf);
 		int bytesleft = len;
 		int n;
 

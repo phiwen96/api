@@ -29,12 +29,14 @@ auto main (int argc, char ** argv) -> int
 		return 1;
 	}
 
-	
+
 
 	auto remoteIP = argv [1];
 	auto remotePORT = argv [2];
 
 	auto stream = clientStream {remotePORT, remoteIP};
+
+	stream << "hello from client";
 
 	// auto&& m = [](connection&& serv)
 	// {
