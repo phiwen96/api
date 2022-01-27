@@ -15,7 +15,8 @@
 // #include <stdlib.h>
 #include <coroutine>
 #include <vector>
-
+#include <aio.h>
+// #include <jthread>
 // #include <string>
 import Server;
 import RemoteClient;
@@ -27,22 +28,8 @@ using std::cout, std::endl, std::move, std::vector;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
 
-// #include <nlohmann/json.hpp>
-// using namespace nlohmann;
 
 #define EAT(...)
-
-// template <
-// 	typename accept_connection,
-// 	typename on_disconnect,
-// 	typename incoming_message,
-// 	typename send_message>
-// struct serv
-// {
-// 	accept_connection acceptConnection;
-// };
-
-
 
 auto const newConnection = [] <RemoteClient U> (U&& r)
 {
@@ -59,8 +46,54 @@ auto const incomingMessage = [] <RemoteClient U> (U&& r, buffer_t <char> && msg)
 	cout << "incoming message >> " << msg << endl;
 };
 
+auto const bufferPrediction = [] <RemoteClient U> (U const& r) -> auto 
+{
+	return 512;
+};
+
+auto bufferGrowPrediction = [] <RemoteClient U> (auto max, U const& r) -> auto 
+{
+	return max * 2;
+};
+
+
+
 int main(int argc, char **argv)
 {
+	// 1. load users from file
+	auto* file = fopen ("data/users.json", "rw"); fseek (file, 0L, SEEK_END);
+  	auto fileSize = ftell (file); rewind (file);
+	auto* buffer = (char*) malloc (fileSize + 1);
+	auto file_fd = fileno (file);
+
+
+	// auto bytesRead = fread (buffer, sizeof(char), fileSize, file);
+  	// buffer [bytesRead] = '\0';
+	auto read_future = make_aio_request (file_fd, buffer, fileSize);
+	auto read_result = aio_read (&read_future);
+
+	if (read_result == -1)
+	{
+		perror ("aio_read");
+		throw;
+	}
+
+	wait_for (read_future);
+
+	auto bytesRead = aio_return (&read_future);
+
+	
+	
+
+
+
+	// fclose (file);
+	if (argc != 2)
+	{
+		cout << "usage >> " << "<localPORT>" << endl;
+		return 1;
+	}
+
 	auto port = argv[1];
 
 	auto server = make_server <remote_client_t>
@@ -68,7 +101,9 @@ int main(int argc, char **argv)
 		port,
 		newConnection,
 		onDisconnect,
-		incomingMessage
+		incomingMessage,
+		bufferPrediction,
+		bufferGrowPrediction
 	);
 
 	server.run();
@@ -109,11 +144,7 @@ int main(int argc, char **argv)
 
 	// auto i = nr_of_threads ();
 
-	// if (argc != 2)
-	// {
-	// 	cout << "usage >> " << "<localPORT>" << endl;
-	// 	return 1;
-	// }
+	
 
 	// process a clients message and return a response
 	// auto&& m = [](connection&& c, string&& msg) -> string

@@ -55,7 +55,11 @@ export
 
 			fcntl(_remote_sockid, F_SETFL, O_NONBLOCK | FASYNC);
 		}
-		remote_client_t(remote_client_t &&) = delete;
+		remote_client_t(remote_client_t && o) = default;
+		//  : _remote_port {o._remote_port}, _remote_sockid {o._remote_sockid}
+		// {
+
+		// }
 		remote_client_t(remote_client_t const &) = delete;
 		friend auto remoteIP(remote_client_t const& me) -> std::string
 		{
@@ -73,7 +77,7 @@ export
 		}
 
 	private:
-		sockaddr_storage _addr;
+		// sockaddr_storage _addr;
 		char _remote_ip_address[INET6_ADDRSTRLEN];
 		int _remote_port;
 		int _remote_sockid;

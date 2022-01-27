@@ -10,10 +10,13 @@ module;
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <aio.h>
 export module Core;
 
 export import Buffer;
 export import Vector;
+// export import Reference;
+// export import Pointer;
 export import Same;
 export import Convertible;
 export import String;
@@ -55,4 +58,25 @@ export
 
 		return n == -1 ? -1 : 0; // return -1 on failure, 0 on success
 	}
+
+	auto make_aio_request (int fd, auto * dst, size_t len) -> auto
+	{
+		return aiocb
+		{
+			.aio_fildes = fd,
+			.aio_buf = dst,
+			.aio_nbytes = len, 
+			.aio_offset = 0 
+		};
+	};
+
+	auto wait_for (auto&... futures) -> auto
+	{
+		constexpr auto len = sizeof... (futures);
+		aiocb const* list [len];
+		auto i = 0;
+		auto add_to_list = [&](auto& future){list [i] = &future; ++i;};
+		((add_to_list (futures)), ...);
+		return aio_suspend (list, len, NULL);
+	};
 }

@@ -1,10 +1,27 @@
 module;
 #include <stdlib.h>
+#include <utility>
 export module Buffer;
+
+// import Pointer;
+// import Reference;
 
 export 
 {
-
+	template <typename buffer>
+	concept Buffer = requires (buffer const b)
+	{
+		true;
+	} and requires (buffer b)
+	{
+		// {b[10]} -> Reference;
+		b.load(10); 
+		b.grow_by(10);
+		b.reset();
+		// {b.next()} -> Pointer;
+		// {b.move_data()} -> Pointer;
+		// {b.data()} -> Pointer;
+	};
 
 
 	template <typename T>
@@ -51,6 +68,11 @@ export
 		auto* data ()
 		{
 			return _data;
+		}
+
+		auto*&& move_data ()
+		{
+			return std::move (_data);
 		}
 
 		auto* next ()

@@ -41,6 +41,22 @@ auto main (int argc, char ** argv) -> int
 	char * message;
 
 	remote_server << "hello from client";
+	// remote_server >> message;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	// remote_server >> message;
 
