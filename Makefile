@@ -69,7 +69,7 @@ $(OBJECTS_DIR)/server.o: $(TARGETS_DIR)/server.cpp $(MODULES_DIR)/Server.o $(MOD
 
 
 ######## Modules ###########
-$(MODULES_DIR)/Server.o: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/Connection.o #$(MODULES_DIR)/Messenger.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
+$(MODULES_DIR)/Server.o: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/RemoteClient.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o $(MODULES_DIR)/Connection.o #$(MODULES_DIR)/Messenger.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o
 	$(CXX) $(CXX_FLAGS) -c $< -o $@ 
 
 # $(MODULES_DIR)/Messenger.o: $(SOURCES_DIR)/Messenger.cpp $(MODULES_DIR)/Connection.o  $(MODULES_DIR)/Usr.o $(MODULES_DIR)/Client.o $(MODULES_DIR)/Http.o $(MODULES_DIR)/Core.o

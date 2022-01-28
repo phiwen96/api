@@ -21,11 +21,13 @@ module;
 #include <string>
 #include <iostream>
 #include <thread>
+#include <aio.h>
 // #include <experimental/net>
 // #include <experimental/netfwd>
 
 export module Server;
 import Core;
+import RemoteClient;
 
 // import Headers;
 
@@ -247,54 +249,68 @@ struct _server
 
 					// handle asynchronously so we can keep up with other connections
 
-					std::thread{
-						[this, sockid = events[i].data.fd] {
-							remote_client r{sockid};
-							auto &&buffer = buffer_t<char>{bufferPrediction(r)}; // let front-end decide
-							do
+					auto r = remote_client_t {events[i].data.fd};
+					auto &&buffer = buffer_t<char>{bufferPrediction(r)}; // let front-end decide
+					constexpr auto len = 1;
+					aiocb const *list[len];
+
+					do
+					{
+						auto read_feature = make_aio_request(events[i].data.fd, buffer.next(), buffer.unused() - 1);
+
+						auto read_result = aio_read(&read_feature);
+
+						if (read_result == -1)
+						{
+							perror("aio_read");
+							throw;
+						}
+
+						list[0] = &read_feature;
+
+						// wait_for(read_future);
+						aio_suspend(list, len, NULL);
+
+						auto bytesRead = aio_return(&read_feature);
+						// cout << bytesRead << endl;
+
+						if (bytesRead == -1)
+						{
+							if (errno == EINVAL)
 							{
-								auto read_future = make_aio_request(sockid, buffer.next(), buffer.unused() - 1);
-								auto read_result = aio_read(&read_future);
+								cout << "EINVAL" << endl;
+							}
+							else if (errno == ENOSYS)
+							{
+								cout << "ENOSYS" << endl;
+							}
+							perror("aio_return");
+							break;
+						}
+						else if (bytesRead == 0)
+						{
+							break;
+						}
+						else
+						{
+							buffer.load(bytesRead);
 
-								if (read_result == -1)
-								{
-									perror("aio_read");
-									throw;
-								}
+							if (buffer.unused() <= 1)
+							{
 
-								wait_for(read_future);
+								buffer.grow_by(bufferGrowPrediction(buffer.used(), r));
+							}
+							else
+							{
+								break;
+							}
+						}
 
-								auto bytesRead = aio_return(&read_future);
-								cout << bytesRead << endl;
+					} while (true);
 
-								if (bytesRead == -1)
-								{
-									perror("aio_return");
-									break;
-								}
-								else if (bytesRead == 0)
-								{
-									break;
-								}
-								else
-								{
-									buffer.load(bytesRead);
-									if (buffer.unused() <= 1)
-									{
-										buffer.grow_by(bufferGrowPrediction(buffer.used(), r));
-									}
-								}
+					*buffer.next() = '\0';
 
-							} while (true);
-
-							*buffer.next() = '\0';
-
-							incomingMessage(std::move (r), std::move(buffer));
-						}}.detach();
-						// }.detach();
-
-					// cout << "sent buffer" << endl;
-					// buffer.reset();
+					incomingMessage(std::move(r), std::move(buffer));
 				}
 
 			CONTINUE:

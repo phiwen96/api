@@ -72,7 +72,7 @@ export
 
 	auto wait_for (auto&... futures) -> auto
 	{
-		constexpr auto len = sizeof... (futures);
+		constexpr auto len = 1;
 		aiocb const* list [len];
 		auto i = 0;
 		auto add_to_list = [&](auto& future){list [i] = &future; ++i;};

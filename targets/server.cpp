@@ -16,24 +16,33 @@
 #include <coroutine>
 #include <vector>
 #include <aio.h>
+#include <atomic>
 // #include <jthread>
 // #include <string>
 import Server;
 import RemoteClient;
 import Core;
+
 // import NetStream;
 // import Remote;
 
-using std::cout, std::endl, std::move, std::vector;
+using std::cout, std::endl, std::move, std::vector, std::atomic;
 
 // using std::cout, std::endl, std::move, std::string, std::vector;
 
 
 #define EAT(...)
 
+auto logged = vector <remote_client_t> {}; // atomic makes it thread safe
+
+
+
+
+
 auto const newConnection = [] <RemoteClient U> (U&& r)
 {
-	cout << "new connection" << endl;
+	// cout << "new connection" << endl;
+
 };
 
 auto const onDisconnect = [] <RemoteClient U> (U&& r) 
@@ -82,11 +91,6 @@ int main(int argc, char **argv)
 
 	auto bytesRead = aio_return (&read_future);
 
-	
-	
-
-
-
 	// fclose (file);
 	if (argc != 2)
 	{
@@ -108,69 +112,10 @@ int main(int argc, char **argv)
 
 	server.run();
 
-	// auto netstream = serverStream {port};
-
-	// auto incoming = remote {};
-
-	// while (true)
-	// {
-
-	// 	netstream >> incoming;
-
-	// 	netstream << "hello from server";
-
-	// 	cout << "message >> " << (char const*) in_message << endl;
-	// }
-
 	return 0;
-
-	// auto addConnection = []<Connection T>(T &&new_connection)
-	// {
-	// 	// push (connected, move (new_connection));
-	// };
-
-	// auto sendMessage = []<Connection T>(T &&to) {
-	// 		to << "hello from server" << endl;
-	// };
-
-	// auto s = make_server(
-	// 	argv[1],
-	// 	newConnection,
-	// 	onDisconnect,
-	// 	incomingMessage,
-	// 	sendMessage);
-
-	// s.start();
-
-	// auto i = nr_of_threads ();
-
-	
-
-	// process a clients message and return a response
-	// auto&& m = [](connection&& c, string&& msg) -> string
-	// {
-	// 	cout << "from client: " << msg << endl;
-	// 	return "hello from server";
-	// };
-
-	// auto&& request = [](connection&& c)
-	// {
-
-	// };
-
-	// Server auto s = make_server(move(m), atoi (argv [1]));
-
-	// std::cout << "port >> " << s.port () << std::endl;
-
-	// s.start();
-
-	// auto s = make_server (m);
-
-	// s.start ();
-
-	// auto s = server {std::move (m), "8080"};
-	// serve("8080", callback);
 }
+
+
 
 // "HTTP/1.1 200 OK\r\n"
 // "Server: ph"
