@@ -1,121 +1,123 @@
-// server.cpp
-
-// #include <stdlib.h>
-// import Server;
-// import Connection;
-// import Connection;
-
-// import Darwin;
-// import Messenger;
-// import Usr;
-// import Server;
-// import Http;
-// import Connection;
 #include <iostream>
-// #include <stdlib.h>
 #include <coroutine>
 #include <vector>
 #include <aio.h>
 #include <atomic>
-// #include <jthread>
-// #include <string>
-import Server;
+#include <semaphore>
+#include <unordered_map>
+import Email;
 import RemoteClient;
+import Server;
+import Usr;
 import Core;
 
-// import NetStream;
-// import Remote;
 
-using std::cout, std::endl, std::move, std::vector, std::atomic;
-
-// using std::cout, std::endl, std::move, std::string, std::vector;
-
+using std::cout, std::endl, std::move, std::vector, std::atomic, std::unordered_map;
 
 #define EAT(...)
 
-auto logged = vector <remote_client_t> {}; // atomic makes it thread safe
-
-
-
-
-
-auto const newConnection = [] <RemoteClient U> (U&& r)
-{
-	// cout << "new connection" << endl;
-
-};
-
-auto const onDisconnect = [] <RemoteClient U> (U&& r) 
-{
-	cout << "disconnect >> " << endl;
-};
-
-auto const incomingMessage = [] <RemoteClient U> (U&& r, buffer_t <char> && msg) 
-{
-	cout << "incoming message >> " << msg << endl;
-};
-
-auto const bufferPrediction = [] <RemoteClient U> (U const& r) -> auto 
-{
-	return 512;
-};
-
-auto bufferGrowPrediction = [] <RemoteClient U> (auto max, U const& r) -> auto 
-{
-	return max * 2;
-};
-
-
+// auto users = vector <user_t> {};
 
 int main(int argc, char **argv)
 {
-	// 1. load users from file
-	auto* file = fopen ("data/users.json", "rw"); fseek (file, 0L, SEEK_END);
-  	auto fileSize = ftell (file); rewind (file);
-	auto* buffer = (char*) malloc (fileSize + 1);
-	auto file_fd = fileno (file);
+	email ("philip.sve@hotmail.com", "hello from server");	
 
+	return 0;
+	
+	auto logged = vector <remote_client_t> {};
+
+	auto writing2logged = atomic<bool>{false};
+	auto reading2logged = atomic<int>{0};
+
+	auto const startLogin = [&](remote_client_t&& r)
+	{
+		
+	};
+
+	auto const newConnection = [&](remote_client_t && r)
+	{
+		// cout << "new connection" << endl;
+		++reading2logged;
+		writing2logged.wait (false);
+
+		if (find (logged.begin(), logged.end(), r) != logged.end()) // logged in
+		{
+			--reading2logged;
+			startLogin (move (r));
+
+		} else // not logged in
+		{
+			--reading2logged;
+			reading2logged.wait (0);
+			writing2logged = true;
+			logged.push_back (r);
+		}
+	};
+
+	auto const onDisconnect = []<RemoteClient U>(U &&r)
+	{
+		cout << "disconnect >> " << endl;
+	};
+
+	auto const incomingMessage = []<RemoteClient U>(U &&r, buffer_t<char> &&msg)
+	{
+		cout << "incoming message >> " << msg << endl;
+	};
+
+	auto const bufferPrediction = []<RemoteClient U>(U const &r) -> auto
+	{
+		return 512;
+	};
+
+	auto bufferGrowPrediction = []<RemoteClient U>(auto max, U const &r) -> auto
+	{
+		return max * 2;
+	};
+	// 1. load users from file
+	auto *file = fopen("data/users.json", "rw");
+	fseek(file, 0L, SEEK_END);
+	auto fileSize = ftell(file);
+	rewind(file);
+	auto *buffer = (char *)malloc(fileSize + 1);
+	auto file_fd = fileno(file);
 
 	// auto bytesRead = fread (buffer, sizeof(char), fileSize, file);
-  	// buffer [bytesRead] = '\0';
-	auto read_future = make_aio_request (file_fd, buffer, fileSize);
-	auto read_result = aio_read (&read_future);
+	// buffer [bytesRead] = '\0';
+	auto read_future = make_aio_request(file_fd, buffer, fileSize);
+	auto read_result = aio_read(&read_future);
 
 	if (read_result == -1)
 	{
-		perror ("aio_read");
+		perror("aio_read");
 		throw;
 	}
 
-	wait_for (read_future);
+	wait_for(read_future);
 
-	auto bytesRead = aio_return (&read_future);
+	auto bytesRead = aio_return(&read_future);
 
 	// fclose (file);
 	if (argc != 2)
 	{
-		cout << "usage >> " << "<localPORT>" << endl;
+		cout << "usage >> "
+			 << "<localPORT>" << endl;
 		return 1;
 	}
 
 	auto port = argv[1];
 
-	auto server = make_server <remote_client_t>
-	(
+	auto server = make_server<remote_client_t>(
 		port,
 		newConnection,
 		onDisconnect,
 		incomingMessage,
 		bufferPrediction,
-		bufferGrowPrediction
-	);
+		bufferGrowPrediction);
 
 	server.run();
 
 	return 0;
 }
-
-
 
 // "HTTP/1.1 200 OK\r\n"
 // "Server: ph"

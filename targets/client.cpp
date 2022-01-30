@@ -7,6 +7,7 @@
 // import Server;
 // import NetStream;
 import RemoteServer;
+import Email;
 using std::cout, std::endl, std::move, std::vector;
 // #include <nlohmann/json.hpp>
 // using namespace nlohmann;
@@ -17,6 +18,9 @@ using std::cout, std::endl, std::move, std::vector;
 
 auto main (int argc, char ** argv) -> int
 {	
+	email ("philip.sve@hotmail.com", "hello from server");	
+
+	return 0;
 	// struct {
 	// 	std::string ip_address;
 	// 	int port;

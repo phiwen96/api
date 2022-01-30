@@ -16,6 +16,7 @@ module;
 #include <vector>
 #include <utility>
 #include <iostream>
+#include <chrono>
 export module RemoteClient;
 
 import Core;
@@ -27,11 +28,12 @@ export
 	{
 		{remoteIP (t)} -> String;
 		{remotePort (t)} -> Same <int>;
+		{sockfd (t)} -> Same <int>;
 	};
 
 	struct remote_client_t
 	{
-		remote_client_t(int remote_sockid) noexcept : _remote_sockid {remote_sockid}
+		remote_client_t(int remote_sockid) noexcept : _alive {std::chrono::system_clock::now()}, _remote_sockid {remote_sockid}
 		{
 			auto remote_addr = sockaddr_storage {};
 			
@@ -59,8 +61,15 @@ export
 		// {
 
 		// }
-		remote_client_t(remote_client_t &&) = default;
-		remote_client_t(remote_client_t const &) = default;
+		remote_client_t(remote_client_t && o) noexcept : _alive {o._alive}, _remote_port {o._remote_port}, _remote_sockid {o._remote_sockid}
+		{
+			std::copy (o._remote_ip_address, o._remote_ip_address + INET6_ADDRSTRLEN, _remote_ip_address);
+
+		}
+		remote_client_t(remote_client_t const & o) noexcept : _alive {o._alive}, _remote_port {o._remote_port}, _remote_sockid {o._remote_sockid}
+		{
+			std::copy (o._remote_ip_address, o._remote_ip_address + INET6_ADDRSTRLEN, _remote_ip_address);
+		}
 		friend auto remoteIP(remote_client_t const& me) -> std::string
 		{
 			return me._remote_ip_address;
@@ -69,6 +78,10 @@ export
 		{
 			return me._remote_port;
 		}
+		friend auto sockfd (remote_client_t& me) -> int 
+		{
+			return me._remote_sockid;
+		}
 
 		friend auto operator<<(std::ostream &os, remote_client_t const &me) -> std::ostream &
 		{
@@ -76,9 +89,19 @@ export
 			return os;
 		}
 
+		friend auto operator== (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
+		{
+			return lhs._remote_ip_address == rhs._remote_ip_address and lhs._alive == rhs._alive and lhs._remote_port == rhs._remote_port and lhs._remote_sockid == rhs._remote_sockid;
+		}
+		friend auto operator!= (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
+		{
+			return not (lhs == rhs);
+		}
+
 	private:
 		// sockaddr_storage _addr;
 		char _remote_ip_address[INET6_ADDRSTRLEN];
+		std::chrono::time_point <std::chrono::system_clock> _alive;
 		int _remote_port;
 		int _remote_sockid;
 	};

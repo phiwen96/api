@@ -1,15 +1,35 @@
+module;
+#include <string>
 export module Usr;
 
-import Client;
+import Core;
+// import RemoteClient;
 
-export template <typename T>
-concept Usr = Client <T> and requires (T usr)
+using std::string;
+
+export
 {
-	{usr.name()} -> String;
-	{usr.email()} -> String;
-	{usr.password()} -> String;
+	template <typename T>
+	concept Usr = requires (T usr)
+	{
+		{usr.name()} -> String;
+		{usr.email()} -> String;
+		{usr.password()} -> String;
 
-	usr.name() = "Philip";
-	usr.email() = "p@w.com";
-	usr.name() = "123kg458FS4@";
-};
+		usr.name() = "Philip";
+		usr.email() = "p@w.com";
+		usr.name() = "123kg458FS4@";
+	};
+
+	struct usr_t 
+	{
+
+		// user_t (auto)
+
+	// private:
+		string _name;
+		// string _
+		int _id;
+	};
+
+}
