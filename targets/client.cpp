@@ -9,9 +9,10 @@
 // #include <string>
 // import Server;
 // import NetStream;
-// import RemoteServer;
+import RemoteServer;
 import <iostream>;
-// import string;
+import <string>;
+import <coroutine>;
 // import <coroutine>;
 // import <iostream>;
 // import <vector>;
@@ -73,7 +74,8 @@ auto main (int argc, char ** argv) -> int
 
 	auto request = "";
 
-	// auto hej = json{"hej"};
+	auto hej = std::string {"hej"};
+	cout << hej << endl;
 
 
 
