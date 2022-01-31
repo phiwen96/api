@@ -5,7 +5,8 @@ CXX := /usr/bin/g++-11
 # CXX_FLAGS = -std=gnu++2b -fmodules -fbuiltin-module-map
 CXX_FLAGS = -std=c++20 -fmodules-ts
 ############### External C++ libraries  ###################
-LIB_NLOHMANN := -I/opt/homebrew/Cellar/nlohmann-json/3.10.5
+# LIB_NLOHMANN := -I/opt/homebrew/Cellar/nlohmann-json/3.10.5
+LIB_NLOHMANN := /usr/local/include/nlohmann/json.hpp
 
 ################## Project dirs ##################
 PROJ_DIR := $(CURDIR)
