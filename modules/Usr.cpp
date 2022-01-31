@@ -12,9 +12,9 @@ export
 	template <typename T>
 	concept Usr = requires (T usr)
 	{
-		{usr.name()} -> String;
-		{usr.email()} -> String;
-		{usr.password()} -> String;
+		{usr.name()} -> Convertible <char const*>;
+		{usr.email()} -> Convertible <char const*>;
+		{usr.password()} -> Convertible <char const*>;
 
 		usr.name() = "Philip";
 		usr.email() = "p@w.com";

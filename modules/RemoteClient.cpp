@@ -19,14 +19,14 @@ module;
 #include <chrono>
 export module RemoteClient;
 
-import Core;
+// import Core;
 
 export 
 {
 	template <typename T>
 	concept RemoteClient = requires (T t)
 	{
-		{remoteIP (t)} -> String;
+		{remoteIP (t)} -> Convertible <char const*>;
 		{remotePort (t)} -> Same <int>;
 		{sockfd (t)} -> Same <int>;
 	};

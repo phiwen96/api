@@ -68,6 +68,12 @@
 		"future": "cpp",
 		"mutex": "cpp",
 		"semaphore": "cpp",
-		"stop_token": "cpp"
+		"stop_token": "cpp",
+		"latch": "cpp",
+		"codecvt": "cpp",
+		"map": "cpp",
+		"iomanip": "cpp",
+		"cinttypes": "cpp",
+		"valarray": "cpp"
 	}
 }

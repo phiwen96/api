@@ -14,13 +14,13 @@ module;
 export module Core;
 
 export import Buffer;
-export import Vector;
+// export import Vector;
 // export import Reference;
 // export import Pointer;
 export import Same;
 export import Convertible;
-export import String;
-export import Char;
+// export import String;
+// export import Char;
 
 
 export

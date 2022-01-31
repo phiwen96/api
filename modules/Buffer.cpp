@@ -27,9 +27,9 @@ export
 	template <typename T>
 	struct buffer_t 
 	{
-		buffer_t (buffer_t&& other) : _data {other._data}, _used_bytes {other._used_bytes}, _unused_bytes {other._unused_bytes}
+		buffer_t (buffer_t&& other) : _data {nullptr}, _used_bytes {other._used_bytes}, _unused_bytes {other._unused_bytes}
 		{
-			other._data = NULL;
+			std::swap (_data, other._data);
 		}
 
 		buffer_t (buffer_t const&) = delete;

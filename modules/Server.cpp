@@ -249,47 +249,23 @@ struct _server
 
 					// handle asynchronously so we can keep up with other connections
 
+
+
 					auto r = remote_client_t {events[i].data.fd};
 					auto &&buffer = buffer_t<char>{bufferPrediction(r)}; // let front-end decide
-					constexpr auto len = 1;
-					aiocb const *list[len];
+			
+					bool sendit = true;
 
 					do
 					{
-						auto read_feature = make_aio_request(events[i].data.fd, buffer.next(), buffer.unused() - 1);
+						auto bytesRead = recv (sockfd (r), buffer.next(), buffer.unused()-1, 0);
 
-						auto read_result = aio_read(&read_feature);
-
-						if (read_result == -1)
-						{
-							perror("aio_read");
-							throw;
-						}
-
-						list[0] = &read_feature;
-
-						// wait_for(read_future);
-						aio_suspend(list, len, NULL);
-
-						auto bytesRead = aio_return(&read_feature);
 						// cout << bytesRead << endl;
 
 						if (bytesRead == -1)
 						{
-							if (errno == EINVAL)
-							{
-								cout << "EINVAL" << endl;
-							}
-							else if (errno == ENOSYS)
-							{
-								cout << "ENOSYS" << endl;
-							}
-							perror("aio_return");
-							break;
-						}
-						else if (bytesRead == 0)
-						{
-							break;
+							perror("recv");
+							sendit = false;
 						}
 						else
 						{
@@ -308,9 +284,12 @@ struct _server
 
 					} while (true);
 
-					*buffer.next() = '\0';
-
-					incomingMessage(std::move(r), std::move(buffer));
+					if (sendit)
+					{
+						*buffer.next() = '\0';
+						incomingMessage (std::move(r), std::move(buffer));
+					}
+					
 				}
 
 			CONTINUE:

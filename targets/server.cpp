@@ -5,11 +5,18 @@
 #include <atomic>
 #include <semaphore>
 #include <unordered_map>
+#include <latch>
+#include <thread>
 import Email;
-import RemoteClient;
 import Server;
 import Usr;
+import RemoteClient;
 import Core;
+
+
+
+
+
 
 
 using std::cout, std::endl, std::move, std::vector, std::atomic, std::unordered_map;
@@ -20,56 +27,52 @@ using std::cout, std::endl, std::move, std::vector, std::atomic, std::unordered_
 
 int main(int argc, char **argv)
 {
-	email ("philip.sve@hotmail.com", "hello from server");	
+	// email ("philip.sve@hotmail.com", "hello from server");	
 
-	return 0;
+	// return 0;
+
+	auto nrOfThreads = std::thread::hardware_concurrency ();
+
+	if (nrOfThreads <= 1)
+	{
+		throw std::runtime_error {"more threads please"};
+	}
 	
 	auto logged = vector <remote_client_t> {};
 
-	auto writing2logged = atomic<bool>{false};
-	auto reading2logged = atomic<int>{0};
+
+	
 
 	auto const startLogin = [&](remote_client_t&& r)
 	{
-		
+		cout << "please login" << endl;
 	};
+
 
 	auto const newConnection = [&](remote_client_t && r)
 	{
-		// cout << "new connection" << endl;
-		++reading2logged;
-		writing2logged.wait (false);
-
-		if (find (logged.begin(), logged.end(), r) != logged.end()) // logged in
-		{
-			--reading2logged;
-			startLogin (move (r));
-
-		} else // not logged in
-		{
-			--reading2logged;
-			reading2logged.wait (0);
-			writing2logged = true;
-			logged.push_back (r);
-		}
+		
+		
 	};
 
-	auto const onDisconnect = []<RemoteClient U>(U &&r)
+	auto const onDisconnect = [](remote_client_t &&r)
 	{
 		cout << "disconnect >> " << endl;
 	};
 
-	auto const incomingMessage = []<RemoteClient U>(U &&r, buffer_t<char> &&msg)
+	auto const incomingMessage = [](remote_client_t &&r, buffer_t<char> &&msg)
 	{
 		cout << "incoming message >> " << msg << endl;
+		// auto parsed = 
+		
 	};
 
-	auto const bufferPrediction = []<RemoteClient U>(U const &r) -> auto
+	auto const bufferPrediction = [](remote_client_t const &r) -> auto
 	{
 		return 512;
 	};
 
-	auto bufferGrowPrediction = []<RemoteClient U>(auto max, U const &r) -> auto
+	auto bufferGrowPrediction = [](auto max, remote_client_t const &r) -> auto
 	{
 		return max * 2;
 	};

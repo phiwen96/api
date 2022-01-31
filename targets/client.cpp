@@ -1,26 +1,45 @@
-#include <iostream>
+// #include <iostream>
+// #include <utility>
 // #include <stdlib.h>
-#include <coroutine>
-#include <vector>
+// #include <coroutine>
+// #include <vector>
+// #include <string>
+// #include <nlohmann/json.hpp>
 
 // #include <string>
 // import Server;
 // import NetStream;
-import RemoteServer;
-import Email;
-using std::cout, std::endl, std::move, std::vector;
+// import RemoteServer;
+import <iostream>;
+// import string;
+// import <coroutine>;
+// import <iostream>;
+// import <vector>;
+// import <string>;
+// import Email;
+using std::cout, std::cin, std::endl;
+// using namespace nlohmann;
 // #include <nlohmann/json.hpp>
 // using namespace nlohmann;
+// import std.io;
 
 // using std::cout, std::cin, std::endl, std::string;
 
 #define EAT(...)
 
+// auto operator new (size_t t) -> void*
+// {
+
+// auto operator delete (void* p) noexcept -> void
+// {
+// 	return free (p);
+// }
+
 auto main (int argc, char ** argv) -> int
 {	
-	email ("philip.sve@hotmail.com", "hello from server");	
+	// email ("philip.sve@hotmail.com", "hello from server");	
 
-	return 0;
+	// return 0;
 	// struct {
 	// 	std::string ip_address;
 	// 	int port;
@@ -36,15 +55,61 @@ auto main (int argc, char ** argv) -> int
 
 
 
-
 	auto remoteIP = argv [1];
 	auto remotePORT = argv [2];
 
-	auto remote_server = remote_server_t {remoteIP, remotePORT};
 
-	char * message;
+	// auto remote_server = remote_server_t {remoteIP, remotePORT};
 
-	remote_server << "hello from client";
+	// auto user = json {};
+
+
+
+	auto message = "";
+	
+	auto input = "";
+	cout << "yo" << endl;
+
+
+	auto request = "";
+
+	// auto hej = json{"hej"};
+
+
+
+	// cout << "username >> ";
+	// cin >> input;
+	// user ["username"] = input;
+	
+	// cout << "password >> ";
+	// cin >> input;
+	// user ["password"] = input;
+
+	// request = "POST /login HTTP/1.\r\n"
+	// "Content-Type:application/json\r\n"
+	// "Accept:application/json\r\n\r\n";
+
+	// request += user.dump();
+	// cout << request << endl;
+
+
+
+
+
+	// remote_server << 
+
+
+
+
+
+
+	
+
+
+
+
+
+	// remote_server << "hello from client";
 	// remote_server >> message;
 
 
