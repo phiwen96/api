@@ -8,6 +8,9 @@ export import Darwin;
 
 export
 {
+	template <typename T, typename U>
+	concept Same_as = std::is_same_v <T, U>;
+	
 	template <typename T>
 	concept String = requires(T a, T && b)
 	{

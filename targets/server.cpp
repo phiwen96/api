@@ -29,54 +29,50 @@ using namespace nlohmann;
 // 	accept_connection acceptConnection;
 // };
 
-auto connected = vector <connection> {};
+auto logged = vector <connection> {};
 
-auto addConnection = [] <Connection T> (T&& new_connection)
-{
-	connected.push_back (move (new_connection));
-};
 
-auto acceptConnection = [] <Connection T> (T&& new_connection) -> bool
-{
-	EAT(
-		// we can use the operator co_await to wait for something without blocking the currently executing thread
-		if (co_await alreadyConnected (new_connection))
-		{
-			return false;
-		}
-
-		co_await addConnection (move (new_connection));
-	)
-	return true;
-};
-
-auto onDisconnect = [] <Connection T> (T&& disconnect)
+auto newConnection = [] (auto&& remote)
 {
 
 };
 
-auto incomingMessage = [] <Connection T> (T&& from)
+auto onDisconnect = [] (auto&& remote)
 {
 
 };
 
-auto sendMessage = [] <Connection T> (T&& to)
+auto incomingMessage = [] (auto&& remote, std::string msg)
 {
 	
 };
+
 
 
 
 auto main (int argc, char ** argv) -> int
 {
 	
+	// auto s = make_server (
+	// 	atoi (argv [1]),
+	// 	acceptConnection, 
+	// 	onDisconnect, 
+	// 	incomingMessage, 
+	// 	sendMessage
+	// );
+
+
 	auto s = make_server (
 		atoi (argv [1]),
-		acceptConnection, 
+		newConnection, 
 		onDisconnect, 
-		incomingMessage, 
-		sendMessage
+		incomingMessage
 	);
+
+	s.start ();
+
+	cout << "yo" << endl;
+	
 
 	// auto i = nr_of_threads ();
 

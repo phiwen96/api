@@ -12,6 +12,9 @@ export import Connection;
 
 #define fwd(x) std::forward<decltype(x)>(x)
 
+using namespace std::experimental;
+using namespace std::chrono;;
+
 auto is_socket_non_blocking(int sockid) -> bool
 {
 
@@ -49,11 +52,27 @@ export
 		std::move(s);
 	};
 
+
+	template <class Rep, class Period>
+	auto operator co_await(duration<Rep, Period> d)
+	{
+		struct Awaitable
+		{
+			system_clock::duration d_;
+			Awaitable(system_clock::duration d) : d_(d) {}
+			bool await_ready() const { return d_.count() <= 0; }
+			void await_suspend(coroutine_handle<> h)
+			{ /* ... */
+			}
+			void await_resume() {}
+		};
+		return Awaitable{d};
+	}
+
 	template <
 		typename accept_connection,
 		typename on_disconnect,
-		typename incoming_message,
-		typename send_message>
+		typename incoming_message>
 	struct server
 	{
 		server(server &&) = delete;
@@ -61,8 +80,7 @@ export
 		server(
 			accept_connection &acceptConnection,
 			on_disconnect &onDisconnect,
-			incoming_message &incomingMessage,
-			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
+			incoming_message &incomingMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}
 		{
 			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
 			{
@@ -90,8 +108,7 @@ export
 			int port,
 			accept_connection &acceptConnection,
 			on_disconnect &onDisconnect,
-			incoming_message &incomingMessage,
-			send_message &sendMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}, sendMessage{sendMessage}
+			incoming_message &incomingMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}
 		{
 			_addrport.sin_port = htons(port);
 
@@ -146,11 +163,11 @@ export
 				if (poll(polls.data(), polls.size(), -1) == -1)
 				{
 					perror("poll error");
-					throw;
+					// throw;
 				}
 
 				// new connection
-				if (polls[0] == _sockid)
+				if (polls[0].revents & POLLIN)
 				{
 					// accept connection
 					if ((remote.sockid = accept(_sockid, (struct sockaddr *)&remote.addr, &remote.len)) == -1)
@@ -160,17 +177,10 @@ export
 					}
 
 					// keep it ?
-					if (acceptConnection(connection{remote.sockid}))
-					{
-						polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN}); // monitor socket
-					}
-					else // disconnect, close socket
-					{
-						if (close(remote.sockid) == -1)
-						{
-							perror("close");
-						}
-					}
+					polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
+					acceptConnection(connection{remote.sockid};
+					
+					
 
 					break;
 				}
@@ -192,28 +202,36 @@ export
 							if (close(i->fd) == -1)
 							{
 								perror("close error");
-								throw;
+								// throw;
 							}
 							polls.erase(i);
 
-							onDisconnect ()
+							onDisconnect(connection{remote.sockid});
 						}
 
+						// message
 						else
 						{
 							buf[numbytes] = '\0';
 
-							std::thread{
-								[&] // lambda
-								{
-									std::string &&response = incomingMessage(connection{remote.sockid}, std::string{buf});
-									if (sendall(remote.sockid, response.c_str(), response.size()) == -1)
-									{
-										perror("sendall error");
-										throw;
-									}
-								}}
-								.detach();
+
+
+							incomingMessage(connection{remote.sockid}, std::string{buf});
+
+							
+							
+							// std::thread{
+							// 	[&] // lambda
+							// 	{
+							// 		std::string &&response = incomingMessage(connection{remote.sockid}, std::string{buf});
+
+							// 		if (sendall(remote.sockid, response.c_str(), response.size()) == -1)
+							// 		{
+							// 			perror("sendall error");
+							// 			// throw;
+							// 		}
+							// 	}}
+							// 	.detach();
 						}
 						break;
 					}
@@ -242,7 +260,6 @@ export
 		accept_connection &acceptConnection;
 		on_disconnect &onDisconnect;
 		incoming_message &incomingMessage;
-		send_message &sendMessage;
 
 		sockaddr_in _addrport{
 			.sin_family = AF_UNSPEC,
@@ -255,17 +272,15 @@ export
 	template <
 		typename accept_connection,
 		typename on_disconnect,
-		typename incoming_message,
-		typename send_message>
+		typename incoming_message>
 	auto make_server(
 		int port,
 		accept_connection &acceptConnection,
 		on_disconnect &onDisconnect,
-		incoming_message &incomingMessage,
-		send_message &sendMessage)
+		incoming_message &incomingMessage)
 		->auto
 	{
 
-		return server<accept_connection, on_disconnect, incoming_message, send_message>{port, acceptConnection, onDisconnect, incomingMessage, sendMessage};
+		return server<accept_connection, on_disconnect, incoming_message>{port, acceptConnection, onDisconnect, incomingMessage};
 	}
 }
