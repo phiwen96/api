@@ -13,6 +13,7 @@ module;
 #include <aio.h>
 export module Core;
 
+export import Json;
 export import Buffer;
 // export import Vector;
 // export import Reference;

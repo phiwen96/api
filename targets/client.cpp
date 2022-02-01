@@ -9,6 +9,7 @@
 // import Server;
 // import NetStream;
 import RemoteServer;
+import Core;
 import <iostream>;
 import <string>;
 import <coroutine>;
@@ -66,13 +67,13 @@ auto main (int argc, char ** argv) -> int
 
 	// auto remote_server = remote_server_t {remoteIP, remotePORT};
 
-	// auto user = json {};
+	auto user_json = json_t {};
 
 
 
 	auto message = "";
 	
-	auto input = "";
+	auto input = std::string {};
 	cout << "yo" << endl;
 
 

@@ -74,6 +74,11 @@
 		"map": "cpp",
 		"iomanip": "cpp",
 		"cinttypes": "cpp",
-		"valarray": "cpp"
+		"valarray": "cpp",
+		"csignal": "cpp",
+		"set": "cpp",
+		"unordered_set": "cpp",
+		"span": "cpp",
+		"variant": "cpp"
 	}
 }
