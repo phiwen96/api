@@ -9,6 +9,7 @@ export import Messenger;
 export import Common;
 export import Caller;
 export import Connection;
+export import RemoteClient;
 
 #define fwd(x) std::forward<decltype(x)>(x)
 
@@ -77,61 +78,70 @@ export
 	{
 		server(server &&) = delete;
 		server(server const &) = delete;
+
 		server(
+			char const* port,
 			accept_connection &acceptConnection,
 			on_disconnect &onDisconnect,
 			incoming_message &incomingMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}
 		{
-			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
+
+			addrinfo *servinfo{nullptr};
+
+			auto hints = addrinfo{
+				.ai_family = AF_UNSPEC,
+				.ai_socktype = SOCK_STREAM,
+				.ai_flags = AI_PASSIVE};
+
+			if (auto r = getaddrinfo(NULL, port, &hints, &servinfo); r != 0)
 			{
-				perror("socket error");
+				fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(r));
 				throw;
 			}
 
-			// set socket to non-blocking (for async)
-			fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+			auto *i = servinfo;
 
-			if (bind(_sockid, (struct sockaddr *)&_addrport, sizeof(_addrport)) == -1)
+			// loop through all the results and connect to the first we can
+			for (; i != NULL; i = i->ai_next)
 			{
-				throw;
-				perror("bind error");
+				if ((_sockid = socket(i->ai_family, i->ai_socktype,
+									 i->ai_protocol)) == -1)
+				{
+					perror("socket");
+					continue;
+				}
+
+				if (int yes = 1; setsockopt(_sockid, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+				{
+					perror("setsockopt");
+					continue;
+				}
+
+				// fcntl (_sockid, F_SETFL, O_NONBLOCK | FASYNC);
+
+				if (bind(_sockid, i->ai_addr, i->ai_addrlen) == -1) 
+				{
+					close(_sockid);
+					perror("server: bind");
+					continue;
+				}
+
+				break;
 			}
 
-			if (listen(_sockid, 5) == -1)
-			{
-				perror("listen error");
-				throw;
-			}
-		}
+			freeaddrinfo (servinfo);
 
-		server(
-			int port,
-			accept_connection &acceptConnection,
-			on_disconnect &onDisconnect,
-			incoming_message &incomingMessage) : acceptConnection{acceptConnection}, onDisconnect{onDisconnect}, incomingMessage{incomingMessage}
-		{
-			_addrport.sin_port = htons(port);
-
-			if ((_sockid = socket(PF_INET, SOCK_STREAM, 0)) == -1)
+			if (i == NULL)
 			{
-				perror("socket error");
+				std::cout << "client failed to connect" << std::endl;
 				throw;
 			}
 
-			// set socket to non-blocking (for async)
-			fcntl(_sockid, F_SETFL, O_NONBLOCK | FASYNC);
-
-			if (bind(_sockid, (struct sockaddr *)&_addrport, sizeof(_addrport)) == -1)
-			{
-				throw;
-				perror("bind error");
-			}
-
-			if (listen(_sockid, 10) == -1)
-			{
-				perror("listen error");
-				throw;
-			}
+			if (listen (_sockid, 20) == -1)
+				{
+					perror ("listen");
+					throw;
+				}
 		}
 
 		auto start()
@@ -178,11 +188,11 @@ export
 
 					// keep it ?
 					polls.push_back(pollfd{.fd = remote.sockid, .events = POLLIN});
-					acceptConnection(connection{remote.sockid};
+					acceptConnection(remote_client_t{remote.sockid});
 					
 					
 
-					break;
+					// break;
 				}
 
 				for (auto i = polls.begin() + 1; i != polls.end(); ++i)
@@ -206,7 +216,7 @@ export
 							}
 							polls.erase(i);
 
-							onDisconnect(connection{remote.sockid});
+							// onDisconnect(connection{remote.sockid});
 						}
 
 						// message
@@ -215,8 +225,7 @@ export
 							buf[numbytes] = '\0';
 
 
-
-							incomingMessage(connection{remote.sockid}, std::string{buf});
+							incomingMessage(remote_client_t{remote.sockid}, std::string{buf});
 
 							
 							
@@ -274,7 +283,7 @@ export
 		typename on_disconnect,
 		typename incoming_message>
 	auto make_server(
-		int port,
+		char const* port,
 		accept_connection &acceptConnection,
 		on_disconnect &onDisconnect,
 		incoming_message &incomingMessage)

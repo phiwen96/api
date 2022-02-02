@@ -131,38 +131,51 @@ export
 
 		static auto parse (std::string s) -> std::optional<http_request>
 		{
+			// return
 			auto request = http_request{};
 
-			if (auto i = s.find ("\r\n\r\n")) // cut json data from string 
+			if (auto i = s.find ("\r\n\r\n"); i != std::string::npos) // cut json data from string 
 			{
 				request.data = std::string (s.begin () + i + 4, s.end ());
 				s.erase (i);
+
+			} else 
+			{
+				return std::nullopt;
 			}
 
 			auto ss = std::stringstream{s};
 			auto line = std::string{};
 
-			std::getline(ss, line); // get request-line
+			// get request-line: HTTP/1.1 200 OK\r\n
+			std::getline(ss, line); 
 
-			if (auto request_line = http_request_line::parse(line);
+			// if parsing request-line successfull
+			if (auto request_line = http_request_line::parse(line); 
 				request_line.has_value())
 			{
-				request.request_line = request_line.value();
+				request.request_line = request_line.value(); 
 			}
-			else
+			else // if parsing request-line successfull
 			{
-				std::cout << "Failed to parse request line" << std::endl;
 				return std::nullopt;
 			}			
 
-			while (std::getline(ss, line)) // get header
+			// extract each header
+
+			// "Server: ph"
+			// "Content-Type: text/html; charset=UTF-8\r\n"
+			// "Content-Length: 200\r\n\r\n"
+			while (std::getline(ss, line))
 			{
+
+				// if header parsed successfull
 				if (auto header = http_header::parse(line);
 					header.has_value())
 				{
 					request.headers.push_back(header.value());
 				}
-				else
+				else // if header parsed unsuccessfull
 				{
 					return std::nullopt;
 				}

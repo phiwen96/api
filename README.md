@@ -10,7 +10,24 @@ for you so that you can start the client application with that port number.
 foo@bar:~$ make && build/apps/client <remoteIP> <remotePort>
 ```
 
-# The following table shows all the RESTful APIs available for developers
+# The following table shows all the REST APIs available for developers
+|---------------------|------------------------------------------------|
+|   RPC				  |			Description       					   |
+|---------------------|------------------------------------------------|
+|  Create<Resource>() |	Creates a new <Resource>  					   |
+|---------------------|------------------------------------------------|
+|  Get<Resource>()    |	Shows information about a specific <Resource>  |
+|---------------------|------------------------------------------------|
+|  List<Resource>()   |	Shows a list of all existing <Resources>	   |
+|---------------------|------------------------------------------------|
+|  Delete<Resource>() |	Deletes an existing <Resource>  			   |
+|---------------------|------------------------------------------------|
+|  Update<Resource>() |	Updates an existing <Resource> in place  	   |
+|---------------------|------------------------------------------------|
+
+
+
+
 
 | ---------- | ----------- | ------------- | -------------------------------- |
 |    URI     | HTTP Method |   POST body   |     Result    			   		  |

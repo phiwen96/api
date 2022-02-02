@@ -34,7 +34,7 @@ auto logged = vector <connection> {};
 
 auto newConnection = [] (auto&& remote)
 {
-
+	// cout << "new connection" << endl;
 };
 
 auto onDisconnect = [] (auto&& remote)
@@ -44,7 +44,23 @@ auto onDisconnect = [] (auto&& remote)
 
 auto incomingMessage = [] (auto&& remote, std::string msg)
 {
+	// cout << msg << endl;
+	auto parsed = http_request::parse (msg);
+
+	if (not parsed)
+	{
+		cout << "could not parse request" << endl;
+		return;
+	}
+
+	auto request = parsed.value();
+	if (request.method() == "")
+
+
 	
+
+
+
 };
 
 
@@ -63,7 +79,7 @@ auto main (int argc, char ** argv) -> int
 
 
 	auto s = make_server (
-		atoi (argv [1]),
+		argv [1],
 		newConnection, 
 		onDisconnect, 
 		incomingMessage

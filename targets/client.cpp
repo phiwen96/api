@@ -3,6 +3,7 @@ import Http;
 // import std;
 import Common;
 import Connection;
+import RemoteServer;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -28,20 +29,47 @@ auto main (int argc, char ** argv) -> int
 	}
 
 	auto remoteIP = argv [1];
-	auto remotePORT = atoi (argv [2]);
+	auto remotePORT = argv [2];
 
-	auto&& m = [](connection&& serv)
-	{
-		serv.write ("hello from client");
-		cout << serv.read () << endl;
-	};
-
-	Client auto cl = client {remoteIP, remotePORT};
-
-
-	cl.write("hello from client");
-	cout << cl.read() << endl;
+	auto remote = remote_server_t {remoteIP, remotePORT};
 	
+	auto user = json {};
+
+	auto input = std::string {};
+
+	cout << "username >> ";
+	cin >> input;
+	user ["username"] = input;
+
+	cout << "password >> ";
+	cin >> input;
+	user ["password"] = input;
+
+	auto request = http_request{
+			.request_line =
+				{
+					.request_type = "POST",
+					.version = 1.0,
+					.url = "/login"},
+
+			.headers =
+				{
+					{"Content-Type", "application/json; charset-UTF-8"}},
+
+			.data = user.dump()};
+
+	remote << request;
+
+	auto response = std::string {};
+
+	remote >> response;
+
+	auto parsed = http_repsonse::parse (response);
+
+	if (not parsed)
+	{
+		cout << "could not interpret response from server" << endl;
+	}
 
 	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
 
