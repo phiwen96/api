@@ -45,7 +45,7 @@ auto main (int argc, char ** argv) -> int
 	cin >> input;
 	user ["password"] = input;
 
-	auto request = http_request{
+	auto request = http::request{
 			.request_line =
 				{
 					.request_type = "POST",
@@ -58,30 +58,18 @@ auto main (int argc, char ** argv) -> int
 
 			.data = user.dump()};
 
-	remote << request;
+	remote << to_string (request);
 
-	auto response = std::string {};
+	// auto response = std::string {};
 
-	remote >> response;
+	// remote >> response;
 
-	auto parsed = http_repsonse::parse (response);
+	// auto parsed = http_repsonse::parse (response);
 
-	if (not parsed)
-	{
-		cout << "could not interpret response from server" << endl;
-	}
-
-	// auto conn =  cl.connect (argv[1], atoi(argv[2])); 
-
-	// conn.write ("hello from client");
-	// cl.close();
-	// cout << "tjo" << endl;
-
-	
-
-	// cout << ""
-
-	// c.call ("hej");
+	// if (not parsed)
+	// {
+	// 	cout << "could not interpret response from server" << endl;
+	// }
 
 
 

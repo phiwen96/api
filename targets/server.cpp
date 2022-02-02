@@ -10,7 +10,7 @@ import Http;
 import std;
 import Connection;
 
-using std::cout, std::endl, std::move, std::string, std::vector;
+using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std::pair;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
@@ -42,23 +42,82 @@ auto onDisconnect = [] (auto&& remote)
 
 };
 
-auto incomingMessage = [] (auto&& remote, std::string msg)
-{
-	// cout << msg << endl;
-	auto parsed = http_request::parse (msg);
+auto createUser = [] (auto&& remote, auto const& user_json) {
 
-	if (not parsed)
-	{
-		cout << "could not parse request" << endl;
-		return;
+};
+
+auto getUser = [] (auto&& remote, auto const& user_json) {
+
+};
+
+auto listUser = [] (auto&& remote, auto const& user_json) {
+
+};
+
+auto deleteUser = [] (auto&& remote, auto const& user_json) {
+
+};
+
+auto updateUser = [] (auto&& remote, auto const& user_json) {
+
+};
+
+
+auto mappedFunctions = tuple {
+	pair{"/create", createUser}, 
+	pair{"/get", getUser}, 
+	pair{"/list", listUser}, 
+	pair{"/delete", deleteUser}, 
+	pair{"/update", updateUser}
+};
+
+
+
+
+
+auto callIfFound (auto const& input, auto const&... params)
+{
+	auto callIfFoundHelper = []<typename TupleT, std::size_t... Is>(auto const& input, const TupleT& tp, std::index_sequence<Is...>, auto const&... params) {
+
+		auto maybeCall = [&] (auto const& keyValue) {
+			auto const& [key, value] = keyValue;
+			if (input == key) {
+				value (params...);
+			}
+		};
+
+		(maybeCall(std::get<Is>(tp)), ...);
+	};
+	callIfFoundHelper (input, mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
+}
+
+auto incomingMessage = [] (auto&& remote, std::string msg) {
+	// cout << msg << endl;
+	auto parsed = http::request::parse (msg);
+
+	if (not parsed) {
+		cout << "parsing error >> " << msg << endl;
+
+		auto response = http::response {
+			.status_line = {.version = 1.1, .status_code = 400, .status_phrase = "Bad Request"},
+			.headers = {{"Content-Type: ", "application/json; charset-UTF-8\r\n"}},
+			.data = json {{"success", false},{"status code", 3},{"status message", "Could not interpret the request"}}.dump()};
+
+		remote << to_string (response);
+		return; 
 	}
 
-	auto request = parsed.value();
-	if (request.method() == "")
+	callIfFound ()
 
+	// auto findMappedFunction = [](auto const& find, auto const& keyValue){
+	// 	auto const& [key, value] = keyValue;
+	// 	if (find == key)
+	// 	{
+			
+	// 	}
+	// };
 
-	
-
+	// call function if map
 
 
 };

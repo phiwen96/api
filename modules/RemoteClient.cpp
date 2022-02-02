@@ -2,6 +2,30 @@ export module RemoteClient;
 import std;
 import Darwin;
 
+inline auto sendall(int sock, char const *buf)->int
+	{
+		int total = 0;
+		int len = strlen (buf);
+		int bytesleft = len;
+		int n;
+
+		while (total < len)
+		{
+			n = send(sock, buf + total, bytesleft, 0);
+			if (n == -1)
+			{
+				break;
+			}
+			total += n;
+			bytesleft -= n;
+		}
+
+		// *len = total;
+
+		return n == -1 ? -1 : 0; // return -1 on failure, 0 on success
+	}
+
+
 export 
 {
 	struct remote_client_t
@@ -60,6 +84,12 @@ export
 		{
 			os << me._remote_ip_address << ":" << me._remote_port;
 			return os;
+		}
+
+		friend auto operator<<(remote_client_t& me, std::string const& s) noexcept -> auto&
+		{
+			sendall (me._remote_sockid, s.c_str());
+			return me;
 		}
 
 		friend auto operator== (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
