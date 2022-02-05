@@ -9,6 +9,7 @@ import Server;
 import Http;
 import std;
 import Connection;
+import API;
 
 using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std::pair;
 
@@ -43,7 +44,8 @@ auto onDisconnect = [] (auto&& remote)
 };
 
 auto createUser = [] (auto&& remote, auto const& user_json) {
-
+	cout << "trying to create user" << endl;
+	cout << user_json.dump() << endl;
 };
 
 auto getUser = [] (auto&& remote, auto const& user_json) {
@@ -64,11 +66,11 @@ auto updateUser = [] (auto&& remote, auto const& user_json) {
 
 
 auto mappedFunctions = tuple {
-	pair{"/create", createUser}, 
-	pair{"/get", getUser}, 
-	pair{"/list", listUser}, 
-	pair{"/delete", deleteUser}, 
-	pair{"/update", updateUser}
+	pair{string{"/create"}, createUser}, 
+	pair{string{"/get"}, getUser}, 
+	pair{string{"/list"}, listUser}, 
+	pair{string{"/delete"}, deleteUser}, 
+	pair{string{"/update"}, updateUser}
 };
 
 
@@ -77,18 +79,20 @@ auto mappedFunctions = tuple {
 
 auto callIfFound (auto const& input, auto const&... params)
 {
-	auto callIfFoundHelper = []<typename TupleT, std::size_t... Is>(auto const& input, const TupleT& tp, std::index_sequence<Is...>, auto const&... params) {
-
+	auto callIfFoundHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT& tp, std::index_sequence<Is...>) {
+		auto found = false;
 		auto maybeCall = [&] (auto const& keyValue) {
-			auto const& [key, value] = keyValue;
-			if (input == key) {
-				value (params...);
-			}
+			if (not found){
+				auto const& [key, value] = keyValue;
+				if (input == key) {
+					found = true;
+					value (params...);
+				}
+			}	
 		};
-
 		(maybeCall(std::get<Is>(tp)), ...);
 	};
-	callIfFoundHelper (input, mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
+	callIfFoundHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
 }
 
 auto incomingMessage = [] (auto&& remote, std::string msg) {
@@ -107,7 +111,11 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 		return; 
 	}
 
-	callIfFound ()
+	callIfFound (parsed.value().request_line.url, remote, json::parse (parsed.value().data));
+	// cout << parsed.value().request_line.request_type << endl;
+	// cout << parsed.value().request_line.url << endl;
+	// auto publicKey = 
+	// cout << msg << endl;
 
 	// auto findMappedFunction = [](auto const& find, auto const& keyValue){
 	// 	auto const& [key, value] = keyValue;

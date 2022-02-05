@@ -1,6 +1,6 @@
 export module RemoteServer;
 import std;
-import Darwin;
+export import Darwin;
 
 using std::cout, std::endl;
 

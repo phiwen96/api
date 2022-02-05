@@ -48,6 +48,27 @@ $(APPS_DIR)/test: $(OBJECTS_DIR)/test.o
 $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
+######## facebook ###########
+$(APPS_DIR)/facebook: $(OBJECTS_DIR)/facebook.o
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+$(OBJECTS_DIR)/facebook.o: $(TARGETS_DIR)/facebook.cpp $(MODULES)
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
+
+######## movie ###########
+$(APPS_DIR)/movie: $(OBJECTS_DIR)/movie.o
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+$(OBJECTS_DIR)/movie.o: $(TARGETS_DIR)/movie.cpp $(MODULES)
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
+
+######## spotify ###########
+$(APPS_DIR)/spotify: $(OBJECTS_DIR)/spotify.o
+	$(CXX) $(CXX_FLAGS) $< -o $@
+
+$(OBJECTS_DIR)/spotify.o: $(TARGETS_DIR)/spotify.cpp $(MODULES)
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
+
 ######## Client ###########
 $(APPS_DIR)/client: $(OBJECTS_DIR)/client.o
 	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@
@@ -97,10 +118,22 @@ $(MODULES_DIR)/Socket.pcm: $(SOURCES_DIR)/Socket.cpp $(MODULES_DIR)/Common.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 $(MODULES_DIR)/Common.pcm: $(SOURCES_DIR)/Common.cpp
-	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 $(MODULES_DIR)/Ready.pcm: $(SOURCES_DIR)/Ready.cpp
-	$(CXX) $(CXX_FLAGS) -c $< -Xclang -emit-module-interface -o $@
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
+
+$(MODULES_DIR)/Facebook.pcm: $(SOURCES_DIR)/Facebook.cpp $(MODULES_DIR)/API.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
+
+$(MODULES_DIR)/Movie.pcm: $(SOURCES_DIR)/Movie.cpp $(MODULES_DIR)/API.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
+
+$(MODULES_DIR)/Spotify.pcm: $(SOURCES_DIR)/Spotify.cpp $(MODULES_DIR)/API.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
+
+$(MODULES_DIR)/API.pcm: $(SOURCES_DIR)/API.cpp
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 
 

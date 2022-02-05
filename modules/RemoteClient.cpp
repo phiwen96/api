@@ -1,6 +1,6 @@
 export module RemoteClient;
 import std;
-import Darwin;
+export import Darwin;
 
 inline auto sendall(int sock, char const *buf)->int
 	{

@@ -10,7 +10,9 @@ using namespace nlohmann;
 
 using std::cout, std::cin, std::endl, std::string;
 
-
+auto createUser(){
+	
+}
 
 auto main (int argc, char ** argv) -> int
 {	
@@ -50,7 +52,7 @@ auto main (int argc, char ** argv) -> int
 				{
 					.request_type = "POST",
 					.version = 1.0,
-					.url = "/login"},
+					.url = "/create"},
 
 			.headers =
 				{

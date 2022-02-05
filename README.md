@@ -14,11 +14,11 @@ foo@bar:~$ make && build/apps/client <remoteIP> <remotePort>
 |---------------------|------------------------------------------------|
 |   RPC				  |			Description       					   |
 |---------------------|------------------------------------------------|
-|  Create<Resource>() |	Creates a new <Resource>  					   |
+|  Create<User>() |	Creates a new <Resource>  					   |
 |---------------------|------------------------------------------------|
-|  Get<Resource>()    |	Shows information about a specific <Resource>  |
+|  Get<userID>()    |	Shows information about a specific <Resource>  |
 |---------------------|------------------------------------------------|
-|  List<Resource>()   |	Shows a list of all existing <Resources>	   |
+|  List()   |	Shows a list of all existing <Resources>	   |
 |---------------------|------------------------------------------------|
 |  Delete<Resource>() |	Deletes an existing <Resource>  			   |
 |---------------------|------------------------------------------------|
