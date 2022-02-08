@@ -14,9 +14,9 @@ using namespace std;
 	It basically processes every connection the server gets.
 */
 
-export template <typename T>
-concept Messenger = requires (T& messenger, string&& in_message, client&& new_client)
-{	
-	{messenger (std::move (in_message), std::move (new_client))} -> String; 
-};
+// export template <typename T>
+// concept Messenger = requires (T& messenger, string&& in_message, client&& new_client)
+// {	
+// 	{messenger (std::move (in_message), std::move (new_client))} -> String; 
+// };
 
