@@ -5,6 +5,8 @@ CXX_FLAGS = -std=c++2a -stdlib=libc++ -fmodules-ts -fmodules -fbuiltin-module-ma
 ############### External C++ libraries  ###################
 LIB_NLOHMANN := -I/opt/homebrew/Cellar/nlohmann-json/3.10.5
 
+LIB_OPENSSL := /opt/homebrew/Cellar/openssl@3/3.0.1
+
 ################## Project dirs ##################
 PROJ_DIR := $(CURDIR)
 BUILD_DIR := $(PROJ_DIR)/build
@@ -57,10 +59,10 @@ $(OBJECTS_DIR)/facebook.o: $(TARGETS_DIR)/facebook.cpp $(MODULES)
 
 ######## movie ###########
 $(APPS_DIR)/movie: $(OBJECTS_DIR)/movie.o
-	$(CXX) $(CXX_FLAGS) $< -o $@
+	$(CXX) $(CXX_FLAGS) $< -o $@ $(LIB_OPENSSL)/lib/libssl.a $(LIB_OPENSSL)/lib/libcrypto.a
 
 $(OBJECTS_DIR)/movie.o: $(TARGETS_DIR)/movie.cpp $(MODULES)
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include -I/$(LIB_OPENSSL)/include
 
 ######## spotify ###########
 $(APPS_DIR)/spotify: $(OBJECTS_DIR)/spotify.o
@@ -91,6 +93,9 @@ $(MODULES_DIR)/Server.pcm: $(SOURCES_DIR)/Server.cpp $(MODULES_DIR)/RemoteClient
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
 $(MODULES_DIR)/RemoteClient.pcm: $(SOURCES_DIR)/RemoteClient.cpp
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
+
+$(MODULES_DIR)/Email.pcm: $(SOURCES_DIR)/Email.cpp $(MODULES_DIR)/RemoteServer.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
 $(MODULES_DIR)/RemoteServer.pcm: $(SOURCES_DIR)/RemoteServer.cpp

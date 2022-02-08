@@ -70,7 +70,6 @@ export
 					continue;
 				}
 
-								cout << "bajs" << endl;
 
 
 				break;
@@ -81,11 +80,12 @@ export
 
 			if (i == NULL)
 			{
-				std::cout << "client failed to connect" << std::endl;
+				// std::cout << "client failed to connect" << std::endl;
+				perror ("client failed to connect");
 				throw;
 			}
 
-			
+				
 		}
 
 		friend auto operator>>(remote_server_t &me, std::string& dst) -> remote_server_t &
