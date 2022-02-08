@@ -123,18 +123,18 @@ export
 
 		
 		READ 
-		cout << "s >> " << buf << endl;
+		// cout << "s >> " << buf << endl;
 		WRITE ("ehlo [127.0.0.1]\r\n")
-		cout << "c >> ehlo [127.0.0.1]\r\n" << endl;
+		// cout << "c >> ehlo [127.0.0.1]\r\n" << endl;
 		READ 
-		cout << "s >> " << buf << endl;
+		// cout << "s >> " << buf << endl;
 
 		// cout << "ehlo:" << buf << endl;
 
-		cout << "c >> STARTTLS\r\n" << endl;
+		// cout << "c >> STARTTLS\r\n" << endl;
 		WRITE ("STARTTLS\r\n");
 		READ
-		cout << "s >> " << buf << endl;
+		// cout << "s >> " << buf << endl;
 		// cout << "STARTTLS:" << buf << endl;
 
 		
@@ -212,7 +212,15 @@ export
 		// cout << "c >> " << msg << endl;
 		WRITE 
 		READ 
-		// cout << "s >> " << buf << endl;
+
+		msg = std::string {"From:<"} + EMAIL_DECODED + ">\r\n";
+		WRITE 
+
+		msg = std::string {"To:<"} + to + ">\r\n";
+		WRITE 
+
+		msg = "\r\n";
+		WRITE 
 
 		msg = std::string {message} + "\r\n.\r\n";
 		// cout << "c >> " << msg << endl;
@@ -231,5 +239,7 @@ export
 		SSL_free(ssl);
 		SSL_CTX_free(ctx);
 		return true;
+		#undef WRITE
+		#undef READ
 	}
 }
