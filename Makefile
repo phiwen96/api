@@ -45,7 +45,7 @@ all: $(APPS)
 
 ######## Test ###########
 $(APPS_DIR)/test: $(OBJECTS_DIR)/test.o
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/test.o -o $@
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/test.o -o $@ $(LIB_OPENSSL)/lib/libssl.a $(LIB_OPENSSL)/lib/libcrypto.a
 
 $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
@@ -96,7 +96,7 @@ $(MODULES_DIR)/RemoteClient.pcm: $(SOURCES_DIR)/RemoteClient.cpp
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
 $(MODULES_DIR)/Email.pcm: $(SOURCES_DIR)/Email.cpp $(MODULES_DIR)/RemoteServer.pcm
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include -I/$(LIB_OPENSSL)/include
 
 $(MODULES_DIR)/RemoteServer.pcm: $(SOURCES_DIR)/RemoteServer.cpp
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
