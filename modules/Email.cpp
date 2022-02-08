@@ -17,8 +17,10 @@ import Darwin;
 #define BuffSize 1024
 using std::cout, std::endl;
 
-constexpr auto EMAIL = "testcase1234w@outlook.com";
-constexpr auto PASSWORD = "testcase1234p";
+constexpr auto EMAIL_DECODED = "testcase1234w@outlook.com";
+constexpr auto EMAIL_ENCODED = "dGVzdGNhc2UxMjM0d0BvdXRsb29rLmNvbQ==";
+constexpr auto PASSWORD_ENCODED = "dGVzdGNhc2UxMjM0cA==";
+// constexpr auto PASSWORD = "testcase1234p";
 constexpr auto EMAIL_SERVER_ADDRESS = "smtp-mail.outlook.com";
 constexpr auto EMAIL_SERVER_PORT = "587";				//"587"; // TCP ports 465 or 587
 // constexpr auto EMAIL_SERVER_PORT = "443";
@@ -48,7 +50,7 @@ inline auto sendall(int sock, char const *buf) -> int
 
 export
 {
-	auto email(auto to, auto message)->bool
+	inline auto email(char const* to, char const* message)->bool
 	{
 		[]
 		{
@@ -109,36 +111,31 @@ export
 
 		int numbytes;
 
-		if ((numbytes = recv (sockid, buf, 1023, 0)) == -1) {
-			perror ("recv");
-			return false;
-		}
+		#define READ \
+			if ((numbytes = recv (sockid, buf, 1023, 0)) == -1) { \
+				perror ("recv"); \
+				return false; \
+			} \
+			buf [numbytes] = '\0';
 
-		buf [numbytes] = '\0';
+		#define WRITE(_x) \
+			sendall(sockid, _x);
 
-		cout << buf << endl;
+		
+		READ 
+		cout << "s >> " << buf << endl;
+		WRITE ("ehlo [127.0.0.1]\r\n")
+		cout << "c >> ehlo [127.0.0.1]\r\n" << endl;
+		READ 
+		cout << "s >> " << buf << endl;
 
-		sendall(sockid, "ehlo [127.0.0.1]\r\n");
+		// cout << "ehlo:" << buf << endl;
 
-		if ((numbytes = recv (sockid, buf, 1023, 0)) == -1) {
-			perror ("recv");
-			return false;
-		}
-
-		buf [numbytes] = '\0';
-
-		cout << "ehlo:" << buf << endl;
-
-		sendall (sockid, "STARTTLS\r\n");
-
-		if ((numbytes = recv (sockid, buf, 1023, 0)) == -1) {
-			perror ("recv");
-			return false;
-		}
-
-		buf [numbytes] = '\0';
-
-		cout << "STARTTLS:" << buf << endl;
+		cout << "c >> STARTTLS\r\n" << endl;
+		WRITE ("STARTTLS\r\n");
+		READ
+		cout << "s >> " << buf << endl;
+		// cout << "STARTTLS:" << buf << endl;
 
 		
 
@@ -162,10 +159,72 @@ export
 		if (SSL_connect(ssl) == -1)
 		{
 			perror("SSL_connect");
-			// fprintf(stderr, "SSL_connect() failed.\n");
-			// ERR_print_errors_fp(stderr);
 			return false;
 		}
+
+		auto msg = std::string {"ehlo [127.0.0.1]\r\n"};
+
+		#undef WRITE
+		#undef READ
+		#define WRITE SSL_write (ssl, msg.c_str (), msg.size ());
+		#define READ numbytes = SSL_read (ssl, buf, 1023); buf [numbytes] = '\0';
+
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+
+		msg = "auth login\r\n";
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;	
+		
+		msg = std::string {EMAIL_ENCODED} + "\r\n";
+		// msg = std::string {"asdkm\r\n"};
+
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+		msg = std::string {PASSWORD_ENCODED} + "\r\n";
+		// msg = std::string {PASSWORD};
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+		msg = std::string {"MAIL FROM:<"} + EMAIL_DECODED + ">\r\n";
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+		msg = std::string {"RCPT TO:<"} + to + ">\r\n";
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+		msg = "DATA\r\n";
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+		msg = std::string {message} + "\r\n.\r\n";
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
+
+		msg = "QUIT\r\n";
+		// cout << "c >> " << msg << endl;
+		WRITE 
+		READ 
+		// cout << "s >> " << buf << endl;
 
 		SSL_shutdown(ssl);
 		close(sockid);

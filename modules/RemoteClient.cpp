@@ -94,7 +94,7 @@ export
 
 		friend auto operator== (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
 		{
-			return lhs._remote_ip_address == rhs._remote_ip_address and lhs._alive == rhs._alive and lhs._remote_port == rhs._remote_port and lhs._remote_sockid == rhs._remote_sockid;
+			return strcmp (lhs._remote_ip_address, rhs._remote_ip_address) != 0 and lhs._alive == rhs._alive and lhs._remote_port == rhs._remote_port and lhs._remote_sockid == rhs._remote_sockid;
 		}
 		friend auto operator!= (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
 		{

@@ -10,8 +10,6 @@ using std::cout, std::endl, std::string;
 
 auto main(int, char **) -> int
 {
-
-	cout << "hello world" << endl;
 	email ("philip.sve@hotmail.com", "hello world");
 	return 0;
 }
