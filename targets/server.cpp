@@ -74,7 +74,7 @@ auto method = [] (auto const& input, auto const&... params) {
 		(maybeCall(std::get<Is>(tp)), ...);
 		return found;
 	};
-	methodHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
+	return methodHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
 };
 
 auto incomingMessage = [] (auto&& remote, std::string msg) {
@@ -100,7 +100,7 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 	if (not method (parsed.value().request_line.url, remote, json::parse (parsed.value().data))) {
 		
 	} else {
-		
+
 	}
 };
 

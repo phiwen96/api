@@ -2,8 +2,7 @@ export module Http;
 
 import std;
 
-export namespace http
-{
+export namespace http {
 	// using std::cout, std::endl;
 
 	// auto const status = std::unordered_map<int, std::string>{
@@ -18,7 +17,7 @@ export namespace http
 	// using status_t = typename decltype(status)::value_type;
 
 	enum class request_type {
-		
+		GET, POST, PUT, DELETE
 	};
 
 	/*
@@ -130,7 +129,8 @@ export namespace http
 			// return
 			auto result = request{};
 
-			if (auto i = s.find ("\r\n\r\n"); i != std::string::npos) // cut json data from string  {
+			// cut json data from string
+			if (auto i = s.find ("\r\n\r\n"); i != std::string::npos) {
 				result.data = std::string (s.begin () + i + 4, s.end ());
 				s.erase (i);
 
@@ -145,8 +145,8 @@ export namespace http
 			std::getline(ss, line); 
 
 			// if parsing request-line successfull
-			if (auto request_line = request_line::parse(line); request_line.has_value()) {
-				result.request_line = request_line.value(); 
+			if (auto rline = http::request_line::parse(line); rline.has_value()) {
+				result.request_line = rline.value(); 
 			} else { // if parsing request-line successfull
 				return std::nullopt;
 			}			
@@ -223,7 +223,7 @@ export namespace http
 	*/
 	struct response {
 		status_line status_line;
-		std::vector<header> headers;
+		std::vector<http::header> headers;
 		std::string data;
 
 		static auto parse(std::string in) -> std::optional<response> {
@@ -253,8 +253,8 @@ export namespace http
 				result.status_line = status_line.value ();
 
 				while (getline (stream, line)){
-					if (auto header = header::parse (line);header.has_value ()){
-						result.headers.push_back (header.value ());
+					if (auto h = http::header::parse (line);h.has_value ()){
+						result.headers.push_back (h.value ());
 					} else {
 						return std::nullopt;
 					}
