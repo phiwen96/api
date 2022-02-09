@@ -16,41 +16,31 @@ using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
-auto logged = vector <connection> {};
-
-
+// auto logged = vector <connection> {};
 auto newConnection = [] (auto&& remote)
 {
 	// cout << "new connection" << endl;
 };
-
 auto onDisconnect = [] (auto&& remote)
 {
 
 };
-
 auto createUser = [] (auto&& remote, auto const& user_json) {
 	cout << "trying to create user" << endl;
 	cout << user_json.dump() << endl;
 };
-
 auto getUser = [] (auto&& remote, auto const& user_json) {
 
 };
-
 auto listUser = [] (auto&& remote, auto const& user_json) {
 
 };
-
 auto deleteUser = [] (auto&& remote, auto const& user_json) {
 
 };
-
 auto updateUser = [] (auto&& remote, auto const& user_json) {
 
 };
-
-
 auto mappedFunctions = tuple {
 	pair{string{"/create"}, createUser}, 
 	pair{string{"/get"}, getUser}, 
@@ -58,7 +48,6 @@ auto mappedFunctions = tuple {
 	pair{string{"/delete"}, deleteUser}, 
 	pair{string{"/update"}, updateUser}
 };
-
 auto method = [] (auto const& input, auto const&... params) {
 	auto methodHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT& tp, std::index_sequence<Is...>) {
 		auto found = false;
@@ -76,7 +65,6 @@ auto method = [] (auto const& input, auto const&... params) {
 	};
 	return methodHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
 };
-
 auto incomingMessage = [] (auto&& remote, std::string msg) {
 	// cout << msg << endl;
 
@@ -103,7 +91,6 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 
 	}
 };
-
 auto main (int argc, char ** argv) -> int {
 
 	if (argc != 2) {

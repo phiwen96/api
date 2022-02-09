@@ -52,10 +52,10 @@ $(OBJECTS_DIR)/test.o: $(TARGETS_DIR)/test.cpp $(MODULES)
 
 ######## facebook ###########
 $(APPS_DIR)/facebook: $(OBJECTS_DIR)/facebook.o
-	$(CXX) $(CXX_FLAGS) $< -o $@
+	$(CXX) $(CXX_FLAGS) $< -o $@ $(LIB_OPENSSL)/lib/libssl.a $(LIB_OPENSSL)/lib/libcrypto.a
 
 $(OBJECTS_DIR)/facebook.o: $(TARGETS_DIR)/facebook.cpp $(MODULES)
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include -I/$(LIB_OPENSSL)/include
 
 ######## movie ###########
 $(APPS_DIR)/movie: $(OBJECTS_DIR)/movie.o
@@ -113,19 +113,16 @@ $(MODULES_DIR)/Client.pcm: $(SOURCES_DIR)/Client.cpp $(MODULES_DIR)/Connection.p
 $(MODULES_DIR)/Connection.pcm: $(SOURCES_DIR)/Connection.cpp $(MODULES_DIR)/Common.pcm $(MODULES_DIR)/Socket.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
+$(MODULES_DIR)/Facebook.pcm: $(SOURCES_DIR)/Facebook.cpp $(MODULES_DIR)/API.pcm $(MODULES_DIR)/Common.pcm $(MODULES_DIR)/Http.pcm
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ -I/$(LIB_OPENSSL)/include
+
 $(MODULES_DIR)/Http.pcm: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Common.pcm 
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 $(MODULES_DIR)/Socket.pcm: $(SOURCES_DIR)/Socket.cpp $(MODULES_DIR)/Common.pcm 
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
-$(MODULES_DIR)/Common.pcm: $(SOURCES_DIR)/Common.cpp
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
-
 $(MODULES_DIR)/Ready.pcm: $(SOURCES_DIR)/Ready.cpp
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
-
-$(MODULES_DIR)/Facebook.pcm: $(SOURCES_DIR)/Facebook.cpp $(MODULES_DIR)/API.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 $(MODULES_DIR)/Movie.pcm: $(SOURCES_DIR)/Movie.cpp $(MODULES_DIR)/API.pcm
@@ -135,6 +132,9 @@ $(MODULES_DIR)/Spotify.pcm: $(SOURCES_DIR)/Spotify.cpp $(MODULES_DIR)/API.pcm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 $(MODULES_DIR)/API.pcm: $(SOURCES_DIR)/API.cpp
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
+
+$(MODULES_DIR)/Common.pcm: $(SOURCES_DIR)/Common.cpp
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 
 
 

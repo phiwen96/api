@@ -4,7 +4,7 @@ export import Common;
 export import Client;
 // export import Caller;
 
-using namespace std;
+// using namespace std;
 
 /*
 	A "Messenger" should be able to process a 
