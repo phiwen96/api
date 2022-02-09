@@ -17,9 +17,9 @@ import Darwin;
 #define BuffSize 1024
 using std::cout, std::endl;
 
-constexpr auto EMAIL_DECODED = "testcase1234w@outlook.com";
-constexpr auto EMAIL_ENCODED = "dGVzdGNhc2UxMjM0d0BvdXRsb29rLmNvbQ==";
-constexpr auto PASSWORD_ENCODED = "dGVzdGNhc2UxMjM0cA==";
+constexpr auto EMAIL = "testcase1234w@outlook.com";
+constexpr auto EMAIL_BASE64 = "dGVzdGNhc2UxMjM0d0BvdXRsb29rLmNvbQ==";
+constexpr auto PASSWORD_BASE64 = "dGVzdGNhc2UxMjM0cA==";
 // constexpr auto PASSWORD = "testcase1234p";
 constexpr auto EMAIL_SERVER_ADDRESS = "smtp-mail.outlook.com";
 constexpr auto EMAIL_SERVER_PORT = "587";				//"587"; // TCP ports 465 or 587
@@ -177,11 +177,11 @@ export
 
 		msg = "auth login\r\n";
 		// cout << "c >> " << msg << endl;
-		WRITE 
+		WRITE
 		READ 
 		// cout << "s >> " << buf << endl;	
 		
-		msg = std::string {EMAIL_ENCODED} + "\r\n";
+		msg = std::string {EMAIL_BASE64} + "\r\n";
 		// msg = std::string {"asdkm\r\n"};
 
 		// cout << "c >> " << msg << endl;
@@ -189,14 +189,14 @@ export
 		READ 
 		// cout << "s >> " << buf << endl;
 
-		msg = std::string {PASSWORD_ENCODED} + "\r\n";
+		msg = std::string {PASSWORD_BASE64} + "\r\n";
 		// msg = std::string {PASSWORD};
 		// cout << "c >> " << msg << endl;
 		WRITE 
 		READ 
 		// cout << "s >> " << buf << endl;
 
-		msg = std::string {"MAIL FROM:<"} + EMAIL_DECODED + ">\r\n";
+		msg = std::string {"MAIL FROM:<"} + EMAIL + ">\r\n";
 		// cout << "c >> " << msg << endl;
 		WRITE 
 		READ 
@@ -213,7 +213,7 @@ export
 		WRITE 
 		READ 
 
-		msg = std::string {"From:<"} + EMAIL_DECODED + ">\r\n";
+		msg = std::string {"From:<"} + EMAIL + ">\r\n";
 		WRITE 
 
 		msg = std::string {"To:<"} + to + ">\r\n";

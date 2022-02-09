@@ -1,7 +1,7 @@
 // server.cpp
-
-import Server;
+import Server; 
 import Common;
+// import Common;
 // import Darwin;
 import Messenger;
 import Usr;
@@ -15,20 +15,6 @@ using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
-
-#define EAT(...) 
-
-
-
-// template <
-// 	typename accept_connection, 
-// 	typename on_disconnect, 
-// 	typename incoming_message,
-// 	typename send_message>
-// struct serv
-// {
-// 	accept_connection acceptConnection;
-// };
 
 auto logged = vector <connection> {};
 
@@ -73,13 +59,8 @@ auto mappedFunctions = tuple {
 	pair{string{"/update"}, updateUser}
 };
 
-
-
-
-
-auto callIfFound (auto const& input, auto const&... params)
-{
-	auto callIfFoundHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT& tp, std::index_sequence<Is...>) {
+auto method = [] (auto const& input, auto const&... params) {
+	auto methodHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT& tp, std::index_sequence<Is...>) {
 		auto found = false;
 		auto maybeCall = [&] (auto const& keyValue) {
 			if (not found){
@@ -91,14 +72,18 @@ auto callIfFound (auto const& input, auto const&... params)
 			}	
 		};
 		(maybeCall(std::get<Is>(tp)), ...);
+		return found;
 	};
-	callIfFoundHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
-}
+	methodHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
+};
 
 auto incomingMessage = [] (auto&& remote, std::string msg) {
 	// cout << msg << endl;
+
+	// try to parse incoming message
 	auto parsed = http::request::parse (msg);
 
+	// if parsing error
 	if (not parsed) {
 		cout << "parsing error >> " << msg << endl;
 
@@ -111,40 +96,21 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 		return; 
 	}
 
-	callIfFound (parsed.value().request_line.url, remote, json::parse (parsed.value().data));
-	// cout << parsed.value().request_line.request_type << endl;
-	// cout << parsed.value().request_line.url << endl;
-	// auto publicKey = 
-	// cout << msg << endl;
-
-	// auto findMappedFunction = [](auto const& find, auto const& keyValue){
-	// 	auto const& [key, value] = keyValue;
-	// 	if (find == key)
-	// 	{
-			
-	// 	}
-	// };
-
-	// call function if map
-
-
+	// if no function corresponding to parsed url method, respond with an error
+	if (not method (parsed.value().request_line.url, remote, json::parse (parsed.value().data))) {
+		
+	} else {
+		
+	}
 };
 
+auto main (int argc, char ** argv) -> int {
 
-
-
-auto main (int argc, char ** argv) -> int
-{
+	if (argc != 2) {
+		cout << "usage >> " << "<localPORT>" << endl;
+		return 1;
+	}
 	
-	// auto s = make_server (
-	// 	atoi (argv [1]),
-	// 	acceptConnection, 
-	// 	onDisconnect, 
-	// 	incomingMessage, 
-	// 	sendMessage
-	// );
-
-
 	auto s = make_server (
 		argv [1],
 		newConnection, 
@@ -154,52 +120,6 @@ auto main (int argc, char ** argv) -> int
 
 	s.start ();
 
-	cout << "yo" << endl;
-	
-
-	// auto i = nr_of_threads ();
-
-	// if (argc != 2)
-	// {
-	// 	cout << "usage >> " << "<localPORT>" << endl;
-	// 	return 1;
-	// }
-
-
-	
-
-	
-
-	// process a clients message and return a response
-	// auto&& m = [](connection&& c, string&& msg) -> string
-	// {
-	// 	cout << "from client: " << msg << endl;
-	// 	return "hello from server";
-	// };
-
-	// auto&& request = [](connection&& c)
-	// {
-
-	// };
-
-
-
-
-
-	// Server auto s = make_server(move(m), atoi (argv [1]));
-
-
-	
-	// std::cout << "port >> " << s.port () << std::endl;
-
-	// s.start();
-
-	// auto s = make_server (m);
-
-	// s.start ();
-
-	// auto s = server {std::move (m), "8080"};
-	// serve("8080", callback);
 	return 0;
 }
 
