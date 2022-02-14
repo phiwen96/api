@@ -86,8 +86,9 @@ export
 
 	
 
-	inline auto sendall(int sock, char const *buf, int len)->int
+	inline auto sendall(int sock, char const *buf)->int
 	{
+		int len = strlen (buf);
 		int total = 0;
 		int bytesleft = len;
 		int n;

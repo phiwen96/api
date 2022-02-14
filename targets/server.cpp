@@ -16,6 +16,7 @@ using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
 
+auto users = json{};
 // auto logged = vector <connection> {};
 auto newConnection = [] (auto&& remote)
 {
@@ -25,14 +26,32 @@ auto onDisconnect = [] (auto&& remote)
 {
 
 };
-auto createUser = [] (auto&& remote, auto const& user_json) {
-	cout << "trying to create user" << endl;
-	cout << user_json.dump() << endl;
+auto createUser = [] (auto&& remote, auto const& data) {
+	// auto name = data ["name"];
 };
 auto getUser = [] (auto&& remote, auto const& user_json) {
 
 };
-auto listUser = [] (auto&& remote, auto const& user_json) {
+auto listUsers = [] (auto&& remote, auto const& user_json) {
+
+};
+auto loginUser = [] (auto&& remote, auto const& data) {
+
+cout << remote << endl;
+	cout << "data >> " << data << endl;
+
+	// loop all users
+	for (auto const& user : users) {
+		// matching usernames
+		if (user ["username"] == data ["username"]) {
+			// and matching passwords
+			if (user ["password"] == data ["password"]) {
+			// wrong password
+			} else {
+				remote << "hej";
+			}
+		}
+	}
 
 };
 auto deleteUser = [] (auto&& remote, auto const& user_json) {
@@ -44,11 +63,12 @@ auto updateUser = [] (auto&& remote, auto const& user_json) {
 auto mappedFunctions = tuple {
 	pair{string{"/create"}, createUser}, 
 	pair{string{"/get"}, getUser}, 
-	pair{string{"/list"}, listUser}, 
+	pair{string{"/list"}, listUsers}, 
 	pair{string{"/delete"}, deleteUser}, 
-	pair{string{"/update"}, updateUser}
+	pair{string{"/update"}, updateUser},
+	pair{string{"/login"}, loginUser}
 };
-auto method = [] (auto const& input, auto const&... params) {
+auto method = [] <typename T, typename... U> (T&& input, U&&... params) {
 	auto methodHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT& tp, std::index_sequence<Is...>) {
 		auto found = false;
 		auto maybeCall = [&] (auto const& keyValue) {
@@ -56,7 +76,7 @@ auto method = [] (auto const& input, auto const&... params) {
 				auto const& [key, value] = keyValue;
 				if (input == key) {
 					found = true;
-					value (params...);
+					value (std::forward <U> (params)...);
 				}
 			}	
 		};
@@ -86,12 +106,19 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 
 	// if no function corresponding to parsed url method, respond with an error
 	if (not method (parsed.value().request_line.url, remote, json::parse (parsed.value().data))) {
-		
+		auto response = http::response {{1.1, 400, "Bad Request"}, {}, {}};
+		auto data = json {{"success", "false"}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}};
+		response.data = data;
+		remote << http::to_string (data);
+
 	} else {
 
 	}
 };
 auto main (int argc, char ** argv) -> int {
+	auto file_users = std::ifstream{"data/users.json"};
+	file_users >> users;
+	file_users.close();
 
 	if (argc != 2) {
 		cout << "usage >> " << "<localPORT>" << endl;

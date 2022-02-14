@@ -51,9 +51,9 @@ auto main (int argc, char ** argv) -> int
 	auto request = http::request{
 			.request_line =
 				{
-					.request_type = "POST",
-					.version = 1.0,
-					.url = "/create"},
+					.request_type = "GET",
+					.version = 1.1,
+					.url = "/login"},
 
 			.headers =
 				{
@@ -62,6 +62,8 @@ auto main (int argc, char ** argv) -> int
 			.data = user.dump()};
 
 	remote << to_string (request);
+	remote >> input;
+
 
 	// auto response = std::string {};
 

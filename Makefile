@@ -114,7 +114,7 @@ $(MODULES_DIR)/Connection.pcm: $(SOURCES_DIR)/Connection.cpp $(MODULES_DIR)/Comm
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ $(LIB_NLOHMANN)/include
 
 $(MODULES_DIR)/Facebook.pcm: $(SOURCES_DIR)/Facebook.cpp $(MODULES_DIR)/API.pcm $(MODULES_DIR)/Common.pcm $(MODULES_DIR)/Http.pcm
-	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ -I/$(LIB_OPENSSL)/include
+	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ -I/$(LIB_OPENSSL)/include $(LIB_NLOHMANN)/include
 
 $(MODULES_DIR)/Http.pcm: $(SOURCES_DIR)/Http.cpp $(MODULES_DIR)/Common.pcm 
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -Xclang -emit-module-interface -o $@ 

@@ -80,18 +80,30 @@ export
 			return me._remote_sockid;
 		}
 
+		friend auto operator<<(remote_client_t& me, std::string const& s) -> remote_client_t&
+		{
+			sendall (me._remote_sockid, s.c_str());
+			return me;
+		}
+
+		// friend auto operator>>(std::string const& s, remote_client_t& me) -> remote_client_t&
+		// {
+		// 	sendall (me._remote_sockid, s.c_str());
+		// 	return me;
+		// }
+
+
 		friend auto operator<<(std::ostream &os, remote_client_t const &me) -> std::ostream &
 		{
 			os << me._remote_ip_address << ":" << me._remote_port;
 			return os;
 		}
 
-		friend auto operator<<(remote_client_t& me, std::string const& s) noexcept -> auto&
-		{
-			sendall (me._remote_sockid, s.c_str());
-			return me;
-		}
+		// auto send (std::string const& s) {
+		// 	sendall (_remote_sockid, s.c_str());
+		// }
 
+	
 		friend auto operator== (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
 		{
 			return strcmp (lhs._remote_ip_address, rhs._remote_ip_address) != 0 and lhs._alive == rhs._alive and lhs._remote_port == rhs._remote_port and lhs._remote_sockid == rhs._remote_sockid;
