@@ -39,6 +39,7 @@ auto main (int argc, char ** argv) -> int
 	auto user = json {};
 
 	auto input = std::string {};
+	auto response = std::string {};
 
 	cout << "username >> ";
 	cin >> input;
@@ -48,21 +49,12 @@ auto main (int argc, char ** argv) -> int
 	cin >> input;
 	user ["password"] = input;
 
-	auto request = http::request{
-			.request_line =
-				{
-					.request_type = "GET",
-					.version = 1.1,
-					.url = "/login"},
+	remote << http::to_string (http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, {user.dump()}});
 
-			.headers =
-				{
-					{"Content-Type", "application/json; charset-UTF-8"}},
+	remote >> response;
 
-			.data = user.dump()};
+	cout << response << endl;
 
-	remote << to_string (request);
-	remote >> input;
 
 
 	// auto response = std::string {};

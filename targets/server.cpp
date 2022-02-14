@@ -105,28 +105,19 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 	// try to parse incoming message
 	auto parsed = http::request::parse (msg);
 
-	// if parsing error
+	// if parsing there is a parsing error
 	if (not parsed) {
-		cout << "parsing error >> " << msg << endl;
+		remote << http::to_string (http::response {{1.1, 400, "Bad Request"}, {{"Content-Type: ", "application/json; charset-UTF-8\r\n"}}, json {{"success", false},{"status code", 3},{"status message", "Could not interpret the request"}}.dump()});
+	} 
 
-		auto response = http::response {
-			.status_line = {.version = 1.1, .status_code = 400, .status_phrase = "Bad Request"},
-			.headers = {{"Content-Type: ", "application/json; charset-UTF-8\r\n"}},
-			.data = json {{"success", false},{"status code", 3},{"status message", "Could not interpret the request"}}.dump()};
-
-		remote << to_string (response);
-		return; 
-	}
-
-	// if no function corresponding to parsed url method, respond with an error
-	if (not method (parsed.value().request_line.url, remote, json::parse (parsed.value().data))) {
-		auto response = http::response {{1.1, 400, "Bad Request"}, {}, {}};
-		auto data = json {{"success", "false"}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}};
-		response.data = data;
-		remote << http::to_string (data);
-
-	} else {
-
+	// call the right url method if found
+	else if (method (parsed.value().request_line.url, remote, json::parse (parsed.value().data))) {
+		
+	} 
+	
+	// if url method not found
+	else {
+		remote << http::response {{1.1, 400, "Bad Request"}, {}, json {{"success", "false"}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}}.dump()};
 	}
 };
 auto main (int argc, char ** argv) -> int {
