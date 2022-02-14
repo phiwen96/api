@@ -49,11 +49,34 @@ auto main (int argc, char ** argv) -> int
 	cin >> input;
 	user ["password"] = input;
 
-	remote << http::to_string (http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, {user.dump()}});
+	// send request to server
+	remote << http::to_string (http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()});
 
-	remote >> response;
+	// get message from server
+	remote >> input;
 
-	cout << response << endl;
+	cout << input << endl;
+
+	// try parse message
+	if (auto parsed = http::response::parse (input); parsed.has_value()) {
+		// return 0;
+		auto data = json::parse (parsed->data);
+		
+		// get status code
+		auto status_code = data ["status_code"];
+
+		// if error, print status phrase
+		if (status_code != 1) {
+			cout << data ["status_phrase"] << endl;
+		} 
+		
+		
+
+	} else { // parsing error
+		cout << "parsing error" << endl;
+	}
+
+	// cout << response << endl;
 
 
 

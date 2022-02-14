@@ -54,19 +54,19 @@ auto loginUser = [] (auto&& remote, auto const& data) {
 				auto access_token = std::to_string (random_int ());
 
 				// respond with an access token
-				remote << http::to_string (http::response {{1.1, 200, "OK"}, {}, json{{"success", "true"}, {"status_code", 1}, {"status_message", "success"}, {"access_token", access_token}}.dump()});
+				remote << http::to_string (http::response {{1.1, 200, "OK"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", true}, {"status_code", 1}, {"status_message", "success"}, {"access_token", access_token}}.dump()});
 			
 			// wrong password
 			} else {
 				// send response with error code
-				remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {}, json{{"success", "false"}, {"status_code", 5}, {"status_message", "Incorrect password"}}.dump()});
+				remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 5}, {"status_message", "Incorrect password"}}.dump()});
 			}
 			return;
 		}
 	}
 	
 	// username not found so respond with an error code
-	remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {}, json{{"success", "false"}, {"status_code", 4}, {"status_message", "Incorrect username"}}.dump()});
+	remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 4}, {"status_message", "Incorrect username"}}.dump()});
 };
 auto deleteUser = [] (auto&& remote, auto const& user_json) {
 
@@ -107,7 +107,7 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 
 	// if parsing there is a parsing error
 	if (not parsed) {
-		remote << http::to_string (http::response {{1.1, 400, "Bad Request"}, {{"Content-Type: ", "application/json; charset-UTF-8\r\n"}}, json {{"success", false},{"status code", 3},{"status message", "Could not interpret the request"}}.dump()});
+		remote << http::to_string (http::response {{1.1, 400, "Bad Request"}, {{"Content-Type: ", "application/json; charset-UTF-8"}}, json {{"success", false},{"status_code", 3},{"status_message", "Could not interpret the request"}}.dump()});
 	} 
 
 	// call the right url method if found
@@ -117,7 +117,7 @@ auto incomingMessage = [] (auto&& remote, std::string msg) {
 	
 	// if url method not found
 	else {
-		remote << http::response {{1.1, 400, "Bad Request"}, {}, json {{"success", "false"}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}}.dump()};
+		remote << http::to_string (http::response {{1.1, 400, "Bad Request"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json {{"success", false}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}}.dump()});
 	}
 };
 auto main (int argc, char ** argv) -> int {

@@ -1,6 +1,7 @@
 export module Http;
 
 import std;
+using std::cout, std::endl;
 
 export namespace http {
 	// using std::cout, std::endl;
@@ -126,8 +127,7 @@ export namespace http {
 			return os;
 		}
 
-		static auto parse (std::string s) -> std::optional<request> {
-			// return
+		static auto parse (std::string s) -> std::optional<request> {			
 			auto result = request{};
 
 			// cut json data from string
@@ -183,6 +183,7 @@ export namespace http {
 		std::string status_phrase;
 
 		static auto parse(std::string const &line_in) -> std::optional<status_line> {
+			// cout << line_in << endl;
 			auto line_out = status_line{};
 			auto version = std::string {};
 			auto status_code = std::string {};
@@ -192,7 +193,6 @@ export namespace http {
 			stream >> version;
 			stream >> status_code;
 			std::getline (stream, line_out.status_phrase);
-			
 
 			if (auto i = version.find ("HTTP/"); i != std::string::npos) {
 				line_out.version = std::stof (std::string {version.begin() + i + 5, version.end ()});
@@ -234,7 +234,7 @@ export namespace http {
 
 
 			// cut json data from string 
-			if (auto i = in.find ("\r\n\r\n")) { 
+			if (auto i = in.find ("\r\n\r\n"); i != std::string::npos) { 
 				// std::cout << in << std::endl;
 				result.data = std::string (in.begin () + i + 4, in.end ());
 				// std::cout << "bajs" << std::endl;
@@ -242,13 +242,14 @@ export namespace http {
 			}
 
 			
-
 			
+			// cout << in << endl;
 			auto line = std::string {};
 			auto stream = std::stringstream {in};
 
 			getline (stream, line);
-
+			// cout << line << endl;
+			
 			// parse status line success
 			if (auto status_line = status_line::parse (line); status_line.has_value ()){
 				result.status_line = status_line.value ();
