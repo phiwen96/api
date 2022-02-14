@@ -59,16 +59,42 @@ auto main (int argc, char ** argv) -> int
 
 	// try parse message
 	if (auto parsed = http::response::parse (input); parsed.has_value()) {
-		// return 0;
 		auto data = json::parse (parsed->data);
 		
 		// get status code
 		auto status_code = data ["status_code"];
 
-		// if error, print status phrase
-		if (status_code != 1) {
+		// wrong username
+		if (status_code == 4) {
+			// maybe new user?
+			do {
+				cout << "new user? [y/n] >> ";
+				cin >> input;
+			} while (input != "y" and input != "n");
+
+			
+			if (input == "y") {
+				cout << "password >> ";
+				cin >> input;
+				user ["password"] = input;
+				cout << "first and last name >> ";
+				cin >> input;
+				user ["name"] = input;
+				cout << "email >> ";
+				cin >> input;
+				user ["email"] = input;
+				remote << http::to_string (http::request{{"POST", 1.1, "/create"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()});
+
+			} else if (input == "n") {
+				
+			} 
 			cout << data ["status_phrase"] << endl;
 		} 
+		
+		// wrong password
+		else if (status_code == 5) {
+			
+		}
 		
 		
 
