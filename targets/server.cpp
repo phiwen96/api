@@ -36,23 +36,37 @@ auto listUsers = [] (auto&& remote, auto const& user_json) {
 
 };
 auto loginUser = [] (auto&& remote, auto const& data) {
-
-cout << remote << endl;
-	cout << "data >> " << data << endl;
-
+	// helper function to generate an access token
+	auto random_int = [min = 1000, max = 9999] {
+		// One engine instance per thread
+		static thread_local auto engine = std::default_random_engine{std::random_device{}()}; 
+		auto dist = std::uniform_int_distribution<>{min, max};
+		return dist (engine);
+	};
+	 
 	// loop all users
 	for (auto const& user : users) {
 		// matching usernames
 		if (user ["username"] == data ["username"]) {
 			// and matching passwords
 			if (user ["password"] == data ["password"]) {
+				// generate an access token
+				auto access_token = std::to_string (random_int ());
+
+				// respond with an access token
+				remote << http::to_string (http::response {{1.1, 200, "OK"}, {}, json{{"success", "true"}, {"status_code", 1}, {"status_message", "success"}, {"access_token", access_token}}.dump()});
+			
 			// wrong password
 			} else {
-				remote << "hej";
+				// send response with error code
+				remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {}, json{{"success", "false"}, {"status_code", 5}, {"status_message", "Incorrect password"}}.dump()});
 			}
+			return;
 		}
 	}
-
+	
+	// username not found so respond with an error code
+	remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {}, json{{"success", "false"}, {"status_code", 4}, {"status_message", "Incorrect username"}}.dump()});
 };
 auto deleteUser = [] (auto&& remote, auto const& user_json) {
 

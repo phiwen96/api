@@ -9,6 +9,7 @@ export namespace http {
 	// 	{200, "OK"},
 	// 	{201, "Created"},
 	// 	{301, "Moved Permanently"},
+	//  {401, "Unauthorized"},
 	// 	{400, "Bad Request"},
 	// 	{403, "Forbidden"},
 	// 	{404, "Not Found"},
