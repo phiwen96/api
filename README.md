@@ -47,6 +47,8 @@ foo@bar:~$ make && build/apps/client <remoteIP> <remotePort>
 | ---------- | ----------- | ------------- | -------------------------------- |
 | search     |    POST     | JSON string   | lists users  			  		  |
 | ---------- | ----------- | ------------- | -------------------------------- |
+| get        |    GET      | JSON string   | get user information  	  		  |
+| ---------- | ----------- | ------------- | -------------------------------- |
 
 
 # Ports used by the REST API

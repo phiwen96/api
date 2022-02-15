@@ -175,6 +175,23 @@ auto main(int argc, char **argv) -> int
 			}
 
 			// get userinfo and email from server
+			request = {{"GET", 1.1, "/get"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+			// send request
+			remote << request;
+			// get response
+			remote >> response;
+			// parse http request 
+			if (auto parsed = http::response::parse (response); parsed.has_value()) {
+				// http data in json format
+				auto data = json::parse(parsed->data);
+				// response status code from server
+				auto status_code = data ["status_code"];
+				auto email = data ["email"];
+				
+			} else {
+				cout << "error >> failed to parse response from server" << endl;
+				continue;
+			}
 
 
 			auto verification_code = std::to_string (random_int ());
