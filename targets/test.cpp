@@ -10,7 +10,7 @@ using std::cout, std::endl, std::string;
 
 auto main(int, char **) -> int
 {
-	email ("philip.sve@hotmail.com", "t world");
+	send_email ("philip.sve@hotmail.com", "t world");
 	return 0;
 }
 

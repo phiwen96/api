@@ -72,8 +72,8 @@ $(OBJECTS_DIR)/spotify.o: $(TARGETS_DIR)/spotify.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include
 
 ######## Client ###########
-$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o
-	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@
+$(APPS_DIR)/client: $(OBJECTS_DIR)/client.o 
+	$(CXX) $(CXX_FLAGS) $(OBJECTS_DIR)/client.o -o $@ $(LIB_OPENSSL)/lib/libssl.a $(LIB_OPENSSL)/lib/libcrypto.a
 
 $(OBJECTS_DIR)/client.o: $(TARGETS_DIR)/client.cpp $(MODULES)
 	$(CXX) $(CXX_FLAGS) $(addprefix -fmodule-file=, $(filter-out $<, $^)) -c $< -o $@ $(LIB_NLOHMANN)/include

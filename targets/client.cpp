@@ -174,7 +174,7 @@ auto main(int argc, char **argv) -> int
 				cin >> input;
 			}
 
-			// get userinfo and email from server
+			// prepare request to get userinfo and email from server
 			request = {{"GET", 1.1, "/get"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 			// send request
 			remote << request;
@@ -186,48 +186,57 @@ auto main(int argc, char **argv) -> int
 				auto data = json::parse(parsed->data);
 				// response status code from server
 				auto status_code = data ["status_code"];
-				auto email = data ["email"];
-				
+				// users email
+				auto email_addr = data ["email"];
+				// generate a random verification code
+				auto verification_code = std::to_string (random_int ());
+				// send verification code to user email address
+				send_email (email_addr.get<std::string>().c_str(), verification_code.c_str());
+
+				// let user enter verification code
+				cout << "email verification code >> ";
+				cin >> input;
+
+				// warn and try again when wrong verification code
+				while (input != verification_code) {
+					cout << "error >> wrong verification code";
+					cout << "email verification code >> ";
+					cin >> input;
+				}
+
+				user ["new_password"] = input;
+
+				// prepare request for resetting user password
+				request = {{"PUT", 1.1, "/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+
+				// send request
+				remote << request;
+
+				// get response from server
+				remote >> response;
+
+				// parse response
+				if (parsed = http::response::parse (response); parsed.has_value()) {
+					// http data in json format
+					data = json::parse(parsed->data);
+					// response status code from server
+					status_code = data ["status_code"];
+					// on success
+					if (status_code == 1) {
+						cout << "success >> password changed" << endl;
+
+					} else {
+						cout << "error >> failed to change password" << endl;
+					}
+
+				} else {
+					cout << "error >> failed to parse response from server" << endl;
+					continue; 
+				}
 			} else {
 				cout << "error >> failed to parse response from server" << endl;
 				continue;
 			}
-
-
-			auto verification_code = std::to_string (random_int ());
-			// email (user ["email"])
-
-			// send verification code to the users email
-
-
-			user ["new_password"] = input;
-
-			// verify with code from email
-
-
-			// setup request
-			request = {{"PUT", 1.1, "password/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
-			// send request
-			remote << request;
-			// get response
-			remote >> response;
-
-			// parse response
-			if (auto parsed = http::response::parse (response); parsed.has_value()) {
-				// http data in json format
-				auto data = json::parse(parsed->data);
-				// response status code from server
-				auto status_code = data ["status_code"];
-
-				// on success
-				if (status_code == 1) {
-					cout << "email verification code >> ";
-					cin >> input;
-				}
-			} else {
-				cout << "error >> failed to parse response from server" << endl;
-			}
-
 		} else if (input == "help") {
 
 		}

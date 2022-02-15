@@ -26,6 +26,9 @@ auto newConnection = [](auto &&remote)
 auto onDisconnect = [](auto &&remote) {
 
 };
+auto resetPassword = [](auto&& remote, auto&& data) {
+	
+};
 auto createUser = [](auto &&remote, auto &&data)
 {
 	// check if username already exists
@@ -98,7 +101,8 @@ auto mappedFunctions = tuple{
 	pair{string{"/list"}, listUsers},
 	pair{string{"/delete"}, deleteUser},
 	pair{string{"/update"}, updateUser},
-	pair{string{"/login"}, loginUser}};
+	pair{string{"/login"}, loginUser},
+	pair{string{"/reset"}, resetPassword}};
 auto method = []<typename T, typename... U>(T && input, U &&...params)
 {
 	auto methodHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT &tp, std::index_sequence<Is...>)

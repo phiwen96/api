@@ -47,7 +47,7 @@ inline auto sendall(int sock, char const *buf) -> int
 
 export
 {
-	inline auto email(char const* to, char const* message)->bool
+	inline auto send_email(char const* to, char const* message)->bool
 	{
 		[]
 		{
