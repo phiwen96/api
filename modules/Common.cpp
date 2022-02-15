@@ -6,8 +6,17 @@ import Darwin;
 // using namespace std;
 // using namespace nlohmann;
 
-export
-{
+export{
+	// helper function to generate an access token
+	inline auto random_int () noexcept
+	{
+		constexpr auto min = 1000;
+		constexpr auto max = 9999;
+		// One engine instance per thread
+		static thread_local auto engine = std::default_random_engine{std::random_device{}()};
+		auto dist = std::uniform_int_distribution<>{min, max};
+		return dist(engine);
+	}
 	// get sockaddr, IPv4 or IPv6
 	inline auto get_in_addr(sockaddr * sa)->void *
 	{
@@ -84,11 +93,9 @@ export
 
 #define fwd(x) std::forward<x>(x)
 
-	
-
 	inline auto sendall(int sock, char const *buf)->int
 	{
-		int len = strlen (buf);
+		int len = strlen(buf);
 		int total = 0;
 		int bytesleft = len;
 		int n;

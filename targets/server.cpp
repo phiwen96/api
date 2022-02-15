@@ -18,14 +18,6 @@ using namespace nlohmann;
 
 auto users = json{};
 
-// helper function to generate an access token
-auto random_int = [min = 1000, max = 9999]
-{
-	// One engine instance per thread
-	static thread_local auto engine = std::default_random_engine{std::random_device{}()};
-	auto dist = std::uniform_int_distribution<>{min, max};
-	return dist(engine);
-};
 // auto logged = vector <connection> {};
 auto newConnection = [](auto &&remote)
 {

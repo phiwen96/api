@@ -4,6 +4,7 @@ import Http;
 import Common;
 import Connection;
 import RemoteServer;
+import Email;
 import std;
 
 #include <nlohmann/json.hpp>
@@ -167,14 +168,20 @@ auto main(int argc, char **argv) -> int
 			cin >> input;
 			
 			// if user entered same password as before, warn and try again
-			while (input != user ["password"]) {
+			while (input == user ["password"]) {
 				cout << "error >> new password must be NEW" << endl;
 				cout << "new password >> ";
 				cin >> input;
 			}
 
+			// get userinfo and email from server
+
+
+			auto verification_code = std::to_string (random_int ());
+			// email (user ["email"])
+
 			// send verification code to the users email
-			
+
 
 			user ["new_password"] = input;
 
@@ -189,11 +196,11 @@ auto main(int argc, char **argv) -> int
 			remote >> response;
 
 			// parse response
-			if (parsed = http::response::parse (repsonse); parsed.has_value()) {
+			if (auto parsed = http::response::parse (response); parsed.has_value()) {
 				// http data in json format
-				data = json::parse(parsed->data);
+				auto data = json::parse(parsed->data);
 				// response status code from server
-				status_code = data ["status_code"];
+				auto status_code = data ["status_code"];
 
 				// on success
 				if (status_code == 1) {
