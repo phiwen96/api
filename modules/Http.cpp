@@ -14,6 +14,7 @@ export namespace http {
 	// 	{400, "Bad Request"},
 	// 	{403, "Forbidden"},
 	// 	{404, "Not Found"},
+	//  {409, "Conflict"}
 	// 	{505, "HTTP Version Not Supported"}};
 
 	// using status_t = typename decltype(status)::value_type;
@@ -168,6 +169,13 @@ export namespace http {
 			}
 			return result;
 		}
+
+		operator std::string () const {
+			auto result = std::string{};
+			auto stream = std::stringstream{result};
+			stream << *this;
+			return stream.str();
+		}
 	};
 
 	/*
@@ -278,6 +286,13 @@ export namespace http {
 				os << "\r\n" << me.data;
 			}
 			return os;
+		}
+
+		operator std::string () const {
+			auto result = std::string{};
+			auto stream = std::stringstream{result};
+			stream << *this;
+			return stream.str();
 		}
 	};
 

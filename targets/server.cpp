@@ -1,5 +1,5 @@
 // server.cpp
-import Server; 
+import Server;
 import Common;
 // import Common;
 // import Darwin;
@@ -17,127 +17,162 @@ using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std
 using namespace nlohmann;
 
 auto users = json{};
+
+// helper function to generate an access token
+auto random_int = [min = 1000, max = 9999]
+{
+	// One engine instance per thread
+	static thread_local auto engine = std::default_random_engine{std::random_device{}()};
+	auto dist = std::uniform_int_distribution<>{min, max};
+	return dist(engine);
+};
 // auto logged = vector <connection> {};
-auto newConnection = [] (auto&& remote)
+auto newConnection = [](auto &&remote)
 {
 	// cout << "new connection" << endl;
 };
-auto onDisconnect = [] (auto&& remote)
+auto onDisconnect = [](auto &&remote) {
+
+};
+auto createUser = [](auto &&remote, auto &&data)
 {
+	// check if username already exists
+	for (auto i = users.begin(); i < users.end(); ++i)
+	{
+		// already exists
+		if ((*i)["username"] == data["username"])
+		{
+			remote << http::response{{1.1, 409, "Conflict"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 7}, {"status_message", "Registration declined, username already exists"}}.dump()};
+			return;
+		}
+	}
+
+	// username is available, give it an id and add the new user to existing ones
+	data["id"] = users.size();
+	users.push_back(data);
+
+	// generate an access token for the client
+	auto access_token = std::to_string(random_int());
+
+	// respond with it
+	remote << http::response{{1.1, 201, "Created"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", true}, {"status_code", 1}, {"status_message", "success"}, {"access_token", access_token}}.dump()};
+};
+auto getUser = [](auto &&remote, auto const &user_json) {
 
 };
-auto createUser = [] (auto&& remote, auto const& data) {
-	// auto name = data ["name"];
-};
-auto getUser = [] (auto&& remote, auto const& user_json) {
+auto listUsers = [](auto &&remote, auto const &user_json) {
 
 };
-auto listUsers = [] (auto&& remote, auto const& user_json) {
-
-};
-auto loginUser = [] (auto&& remote, auto const& data) {
-	// helper function to generate an access token
-	auto random_int = [min = 1000, max = 9999] {
-		// One engine instance per thread
-		static thread_local auto engine = std::default_random_engine{std::random_device{}()}; 
-		auto dist = std::uniform_int_distribution<>{min, max};
-		return dist (engine);
-	};
-	 
+auto loginUser = [](auto &&remote, auto const &data)
+{
 	// loop all users
-	for (auto const& user : users) {
-		// matching usernames
-		if (user ["username"] == data ["username"]) {
-			// and matching passwords
-			if (user ["password"] == data ["password"]) {
+	for (auto const &user : users)
+	{
+		// on username found
+		if (user["username"] == data["username"])
+		{
+			// on password matching
+			if (user["password"] == data["password"])
+			{
 				// generate an access token
-				auto access_token = std::to_string (random_int ());
+				auto access_token = std::to_string(random_int());
 
-				// respond with an access token
-				remote << http::to_string (http::response {{1.1, 200, "OK"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", true}, {"status_code", 1}, {"status_message", "success"}, {"access_token", access_token}}.dump()});
-			
-			// wrong password
-			} else {
+				// respond with it
+				remote << http::to_string(http::response{{1.1, 200, "OK"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", true}, {"status_code", 1}, {"status_message", "success"}, {"access_token", access_token}}.dump()});
+
+				// wrong password
+			}
+			else
+			{
 				// send response with error code
-				remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 5}, {"status_message", "Incorrect password"}}.dump()});
+				remote << http::to_string(http::response{{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 5}, {"status_message", "Incorrect password"}}.dump()});
 			}
 			return;
 		}
 	}
-	
+
 	// username not found so respond with an error code
-	remote << http::to_string (http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 4}, {"status_message", "Incorrect username"}}.dump()});
+	remote << http::to_string(http::response{{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 4}, {"status_message", "Incorrect username"}}.dump()});
 };
-auto deleteUser = [] (auto&& remote, auto const& user_json) {
+auto deleteUser = [](auto &&remote, auto const &user_json) {
 
 };
-auto updateUser = [] (auto&& remote, auto const& user_json) {
+auto updateUser = [](auto &&remote, auto const &user_json) {
 
 };
-auto mappedFunctions = tuple {
-	pair{string{"/create"}, createUser}, 
-	pair{string{"/get"}, getUser}, 
-	pair{string{"/list"}, listUsers}, 
-	pair{string{"/delete"}, deleteUser}, 
+auto mappedFunctions = tuple{
+	pair{string{"/create"}, createUser},
+	pair{string{"/get"}, getUser},
+	pair{string{"/list"}, listUsers},
+	pair{string{"/delete"}, deleteUser},
 	pair{string{"/update"}, updateUser},
-	pair{string{"/login"}, loginUser}
-};
-auto method = [] <typename T, typename... U> (T&& input, U&&... params) {
-	auto methodHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT& tp, std::index_sequence<Is...>) {
+	pair{string{"/login"}, loginUser}};
+auto method = []<typename T, typename... U>(T && input, U &&...params)
+{
+	auto methodHelper = [&]<typename TupleT, std::size_t... Is>(const TupleT &tp, std::index_sequence<Is...>)
+	{
 		auto found = false;
-		auto maybeCall = [&] (auto const& keyValue) {
-			if (not found){
-				auto const& [key, value] = keyValue;
-				if (input == key) {
+		auto maybeCall = [&](auto const &keyValue)
+		{
+			if (not found)
+			{
+				auto const &[key, value] = keyValue;
+				if (input == key)
+				{
 					found = true;
-					value (std::forward <U> (params)...);
+					value(std::forward<U>(params)...);
 				}
-			}	
+			}
 		};
 		(maybeCall(std::get<Is>(tp)), ...);
 		return found;
 	};
-	return methodHelper (mappedFunctions, std::make_index_sequence <std::tuple_size_v <decltype (mappedFunctions)>> {});
+	return methodHelper(mappedFunctions, std::make_index_sequence<std::tuple_size_v<decltype(mappedFunctions)>>{});
 };
-auto incomingMessage = [] (auto&& remote, std::string msg) {
+auto incomingMessage = [](auto &&remote, std::string msg)
+{
 	// cout << msg << endl;
 
 	// try to parse incoming message
-	auto parsed = http::request::parse (msg);
+	auto parsed = http::request::parse(msg);
 
 	// if parsing there is a parsing error
-	if (not parsed) {
-		remote << http::to_string (http::response {{1.1, 400, "Bad Request"}, {{"Content-Type: ", "application/json; charset-UTF-8"}}, json {{"success", false},{"status_code", 3},{"status_message", "Could not interpret the request"}}.dump()});
-	} 
+	if (not parsed)
+	{
+		remote << http::to_string(http::response{{1.1, 400, "Bad Request"}, {{"Content-Type: ", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 3}, {"status_message", "Could not interpret the request"}}.dump()});
+	}
 
 	// call the right url method if found
-	else if (method (parsed.value().request_line.url, remote, json::parse (parsed.value().data))) {
-		
-	} 
-	
+	else if (method(parsed.value().request_line.url, remote, json::parse(parsed.value().data)))
+	{
+	}
+
 	// if url method not found
-	else {
-		remote << http::to_string (http::response {{1.1, 400, "Bad Request"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json {{"success", false}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}}.dump()});
+	else
+	{
+		remote << http::to_string(http::response{{1.1, 400, "Bad Request"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", "3"}, {"status_message", "Could not interpret the request"}}.dump()});
 	}
 };
-auto main (int argc, char ** argv) -> int {
+auto main(int argc, char **argv) -> int
+{
 	auto file_users = std::ifstream{"data/users.json"};
 	file_users >> users;
 	file_users.close();
 
-	if (argc != 2) {
-		cout << "usage >> " << "<localPORT>" << endl;
+	if (argc != 2)
+	{
+		cout << "usage >> "
+			 << "<localPORT>" << endl;
 		return 1;
 	}
-	
-	auto s = make_server (
-		argv [1],
-		newConnection, 
-		onDisconnect, 
-		incomingMessage
-	);
 
-	s.start ();
+	auto s = make_server(
+		argv[1],
+		newConnection,
+		onDisconnect,
+		incomingMessage);
+
+	s.start();
 
 	return 0;
 }

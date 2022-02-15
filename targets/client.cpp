@@ -11,12 +11,12 @@ using namespace nlohmann;
 
 using std::cout, std::cin, std::endl, std::string;
 
-auto createUser(){
-	
+auto createUser()
+{
 }
 
-auto main (int argc, char ** argv) -> int
-{	
+auto main(int argc, char **argv) -> int
+{
 	// struct {
 	// 	std::string ip_address;
 	// 	int port;
@@ -27,84 +27,135 @@ auto main (int argc, char ** argv) -> int
 
 	if (argc != 3)
 	{
-		cout << "usage >> " << "<remoteIP> <remotePORT>" << endl;
+		cout << "usage >> "
+			 << "<remoteIP> <remotePORT>" << endl;
 		return 1;
 	}
 
-	auto remoteIP = argv [1];
-	auto remotePORT = argv [2];
+	auto remoteIP = argv[1];
+	auto remotePORT = argv[2];
 
-	auto remote = remote_server_t {remoteIP, remotePORT};
-	
-	auto user = json {};
+	auto remote = remote_server_t{remoteIP, remotePORT};
 
-	auto input = std::string {};
+	// use for authenticating against the server, 
+	// we must get this from server
+	auto access_token = std::string {};
+
+	// http data filled with userinfo
+	auto user = json{};
+
+	// used to query the user for inputs such as username and password
+	auto input = std::string{};
+
+	// this will hold the message from the server 
 	auto response = std::string {};
 
+	// get username and password from user
 	cout << "username >> ";
 	cin >> input;
-	user ["username"] = input;
-
+	user["username"] = input;
 	cout << "password >> ";
 	cin >> input;
-	user ["password"] = input;
+	user["password"] = input;
 
-	// send request to server
-	remote << http::to_string (http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()});
+	// prepare the http request for login
+	auto request = http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 
-	// get message from server
-	remote >> input;
+	while (true)
+	{
+		// send request to server
+		remote << request;
 
-	cout << input << endl;
+		// get response from server
+		remote >> response;
 
-	// try parse message
-	if (auto parsed = http::response::parse (input); parsed.has_value()) {
-		auto data = json::parse (parsed->data);
-		
-		// get status code
-		auto status_code = data ["status_code"];
+		// parse response from server
+		if (auto parsed = http::response::parse(response); parsed.has_value())
+		{
+			// http data in json format
+			auto data = json::parse(parsed->data);
 
-		// wrong username
-		if (status_code == 4) {
-			// maybe new user?
-			do {
+			// status code from server
+			auto status_code = data["status_code"];
+
+			// on success, get our access_token (for further communication with the server)
+			if (status_code == 1) {
+				access_token = data ["access_token"];
+				break;
+			}
+
+			// wrong username
+			else if (status_code == 4)
+			{
+				// maybe new user?
 				cout << "new user? [y/n] >> ";
 				cin >> input;
-			} while (input != "y" and input != "n");
 
-			
-			if (input == "y") {
-				cout << "password >> ";
-				cin >> input;
-				user ["password"] = input;
-				cout << "first and last name >> ";
-				cin >> input;
-				user ["name"] = input;
-				cout << "email >> ";
-				cin >> input;
-				user ["email"] = input;
-				remote << http::to_string (http::request{{"POST", 1.1, "/create"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()});
+				while (input != "y" and input != "n")
+				{
+					cout << "try again, new user? [y/n] >> ";
+					cin >> input;
+				}
 
-			} else if (input == "n") {
-				
-			} 
-			cout << data ["status_phrase"] << endl;
-		} 
-		
-		// wrong password
-		else if (status_code == 5) {
-			
+				// new user
+				if (input == "y")
+				{
+					// start registration
+					cout << "first name >> ";
+					cin >> input;
+					input += " ";
+					cout << "last name >> ";
+					auto&& temp = std::string {};
+					cin >> temp;
+					input += std::move (temp);
+					user["name"] = input;
+					cout << "email >> ";
+					cin >> input;
+					user["email"] = input;
+
+					// change the request so that the server may create the new user 
+					request = http::request{{"POST", 1.1, "/create"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+				}
+				else if (input == "n")
+				{
+					cout << "error >> user does not exist, try again" << endl;
+					cout << "username >> ";
+					cin >> input;
+					user["username"] = input;
+
+					cout << "password >> ";
+					cin >> input;
+					user["password"] = input;
+				}
+				// cout << data["status_phrase"] << endl;
+			}
+			// wrong password
+			else if (status_code == 5)
+			{
+				cout << "error >> wrong credentials" << endl;
+			}
+			// we tried to create user, but username already exists
+			else if (status_code == 7)  {
+				cout << "error >> failed to create user" << endl;
+			}
+
+			// try again
+			cout << "username >> ";
+			cin >> input;
+			user["username"] = input;
+			cout << "password >> ";
+			cin >> input;
+			user["password"] = input;
 		}
-		
-		
 
-	} else { // parsing error
-		cout << "parsing error" << endl;
+		// parsing failed
+		else
+		{ 
+			cout << "error >> parsing message from server" << endl;
+		}
 	}
 
 	// cout << response << endl;
-
-
 
 	// auto response = std::string {};
 
@@ -116,8 +167,6 @@ auto main (int argc, char ** argv) -> int
 	// {
 	// 	cout << "could not interpret response from server" << endl;
 	// }
-
-
 
 	return 0;
 }
@@ -134,7 +183,6 @@ auto msg = std::string
 			+ "\n\n"
 			+ user.dump();
 */
-
 
 /*
 std::string inp;
@@ -185,7 +233,7 @@ std::string inp;
 
 		switch (status_code)
 		{
-			case 1: // success 
+			case 1: // success
 			{
 				return true;
 			}
@@ -289,7 +337,7 @@ AUTH:
 
 	while (not authenticate())
 	{
-	
+
 	}
 
 	auto close = false;
@@ -429,7 +477,7 @@ AUTH:
 			case 1: // success
 				std::cout << data_json ["users"].dump (4) << std::endl << "online >> ";
 				break;
-			
+
 			default:
 				std::cout << data_json ["status message"] << std::endl << "online >> ";
 				break;
