@@ -173,10 +173,13 @@ auto main(int argc, char **argv) -> int
 				cin >> input;
 			}
 
+			// send verification code to the users email
+			
+
 			user ["new_password"] = input;
 
 			// verify with code from email
-			
+
 
 			// setup request
 			request = {{"PUT", 1.1, "password/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
