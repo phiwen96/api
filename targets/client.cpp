@@ -37,9 +37,9 @@ auto main(int argc, char **argv) -> int
 
 	auto remote = remote_server_t{remoteIP, remotePORT};
 
-	// use for authenticating against the server, 
+	// use for authenticating against the server,
 	// we must get this from server
-	auto access_token = std::string {};
+	auto access_token = std::string{};
 
 	// http data filled with userinfo
 	auto user = json{};
@@ -47,8 +47,8 @@ auto main(int argc, char **argv) -> int
 	// used to query the user for inputs such as username and password
 	auto input = std::string{};
 
-	// this will hold the message from the server 
-	auto response = std::string {};
+	// this will hold the message from the server
+	auto response = std::string{};
 
 	// get username and password from user
 	cout << "username >> ";
@@ -61,6 +61,7 @@ auto main(int argc, char **argv) -> int
 	// prepare the http request for login
 	auto request = http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 
+	// loops until we have got an access token for user
 	while (true)
 	{
 		// send request to server
@@ -79,8 +80,9 @@ auto main(int argc, char **argv) -> int
 			auto status_code = data["status_code"];
 
 			// on success, get our access_token (for further communication with the server)
-			if (status_code == 1) {
-				access_token = data ["access_token"];
+			if (status_code == 1)
+			{
+				access_token = data["access_token"];
 				break;
 			}
 
@@ -105,15 +107,15 @@ auto main(int argc, char **argv) -> int
 					cin >> input;
 					input += " ";
 					cout << "last name >> ";
-					auto&& temp = std::string {};
+					auto &&temp = std::string{};
 					cin >> temp;
-					input += std::move (temp);
+					input += std::move(temp);
 					user["name"] = input;
 					cout << "email >> ";
 					cin >> input;
 					user["email"] = input;
 
-					// change the request so that the server may create the new user 
+					// change the request so that the server may create the new user
 					request = http::request{{"POST", 1.1, "/create"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 					continue;
 				}
@@ -131,25 +133,65 @@ auto main(int argc, char **argv) -> int
 				cout << "error >> wrong credentials" << endl;
 			}
 			// we tried to create user, but username already exists
-			else if (status_code == 7)  {
+			else if (status_code == 7)
+			{
 				cout << "error >> failed to create user" << endl;
 			}
-
-			// try again
-			cout << "username >> ";
-			cin >> input;
-			user["username"] = input;
-			cout << "password >> ";
-			cin >> input;
-			user["password"] = input;
 		}
 
 		// parsing failed
 		else
-		{ 
+		{
 			cout << "error >> parsing message from server" << endl;
 		}
+
+		// try again
+		cout << "username >> ";
+		cin >> input;
+		user["username"] = input;
+		cout << "password >> ";
+		cin >> input;
+		user["password"] = input;
 	}
+
+	// wait for a command from user
+	do {
+		cout << "online >> ";
+		cin >> input;
+
+		if (input == "list") {
+
+		} else if (input == "reset") {
+			
+			// setup request for resetting password
+			request = {{"PUT", 1.1, "password/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+			// send request
+			remote << request;
+			// get response
+			remote >> response;
+
+			// parse response
+			if (parsed = http::response::parse (repsonse); parsed.has_value()) {
+				// http data in json format
+				data = json::parse(parsed->data);
+				// response status code from server
+				status_code = data ["status_code"];
+
+				// on success
+				if (status_code == 1) {
+					cout << "email verification code >> ";
+					cin >> input;
+				}
+			} else {
+				cout << "error >> failed to parse response from server" << endl;
+			}
+
+		} else if (input == "help") {
+
+		}
+	} while (input != "exit");
+
+
 
 	// cout << response << endl;
 
