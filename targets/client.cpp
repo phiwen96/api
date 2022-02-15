@@ -162,8 +162,23 @@ auto main(int argc, char **argv) -> int
 		if (input == "list") {
 
 		} else if (input == "reset") {
+			// query for a new password
+			cout << "new password >> ";
+			cin >> input;
 			
-			// setup request for resetting password
+			// if user entered same password as before, warn and try again
+			while (input != user ["password"]) {
+				cout << "error >> new password must be NEW" << endl;
+				cout << "new password >> ";
+				cin >> input;
+			}
+
+			user ["new_password"] = input;
+
+			// verify with code from email
+			
+
+			// setup request
 			request = {{"PUT", 1.1, "password/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 			// send request
 			remote << request;
