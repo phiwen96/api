@@ -84,7 +84,7 @@ auto main(int argc, char **argv) -> int
 				break;
 			}
 
-			// wrong username
+			// username doesn't exist
 			else if (status_code == 4)
 			{
 				// maybe new user?
@@ -97,7 +97,7 @@ auto main(int argc, char **argv) -> int
 					cin >> input;
 				}
 
-				// new user
+				// if new user, get further info
 				if (input == "y")
 				{
 					// start registration
@@ -115,17 +115,13 @@ auto main(int argc, char **argv) -> int
 
 					// change the request so that the server may create the new user 
 					request = http::request{{"POST", 1.1, "/create"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+					continue;
 				}
+
+				// if old user, just start over
 				else if (input == "n")
 				{
-					cout << "error >> user does not exist, try again" << endl;
-					cout << "username >> ";
-					cin >> input;
-					user["username"] = input;
-
-					cout << "password >> ";
-					cin >> input;
-					user["password"] = input;
+					cout << "error >> wrong credentials" << endl;
 				}
 				// cout << data["status_phrase"] << endl;
 			}
