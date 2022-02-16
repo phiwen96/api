@@ -41,6 +41,7 @@ auto main(int argc, char **argv) -> int
 	// use for authenticating against the server,
 	// we must get this from server
 	auto access_token = std::string{};
+	auto user_id = int {};
 
 	// http data filled with userinfo
 	auto user = json{};
@@ -74,16 +75,17 @@ auto main(int argc, char **argv) -> int
 		// parse response from server
 		if (auto parsed = http::response::parse(response); parsed.has_value())
 		{
-			// http data in json format
+			// get http data from server in json format
 			auto data = json::parse(parsed->data);
 
-			// status code from server
+			// get status code from server
 			auto status_code = data["status_code"];
 
-			// on success, get our access_token (for further communication with the server)
+			// on success, get our access_token and user ID (for further communication with the server)
 			if (status_code == 1)
 			{
 				access_token = data["access_token"];
+				user_id = data["id"];
 				break;
 			}
 
@@ -155,6 +157,10 @@ auto main(int argc, char **argv) -> int
 		user["password"] = input;
 	}
 
+	// prepare http data 
+	auto data = json {{"access_token", access_token}, {"id", user_id}};
+
+
 	// wait for a command from user
 	do {
 		cout << "online >> ";
@@ -174,8 +180,10 @@ auto main(int argc, char **argv) -> int
 				cin >> input;
 			}
 
+			auto const new_password = input;
+
 			// prepare request to get userinfo and email from server
-			request = {{"GET", 1.1, "/get"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+			request = {{"GET", 1.1, "/get"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", access_token}, {"id", user_id}}.dump()};
 			// send request
 			remote << request;
 			// get response
@@ -183,11 +191,12 @@ auto main(int argc, char **argv) -> int
 			// parse http request 
 			if (auto parsed = http::response::parse (response); parsed.has_value()) {
 				// http data in json format
-				auto data = json::parse(parsed->data);
+				auto status = json::parse(parsed->data);
+				cout << status << endl;
 				// response status code from server
-				auto status_code = data ["status_code"];
+				auto status_code = status ["status_code"];
 				// users email
-				auto email_addr = data ["email"];
+				auto email_addr = status ["email"];
 				// generate a random verification code
 				auto verification_code = std::to_string (random_int ());
 				// send verification code to user email address
@@ -204,10 +213,8 @@ auto main(int argc, char **argv) -> int
 					cin >> input;
 				}
 
-				user ["new_password"] = input;
-
 				// prepare request for resetting user password
-				request = {{"PUT", 1.1, "/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+				request = {{"PUT", 1.1, "/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", access_token}, {"id", user_id}, {"password", new_password}}.dump()};
 
 				// send request
 				remote << request;
@@ -218,11 +225,12 @@ auto main(int argc, char **argv) -> int
 				// parse response
 				if (parsed = http::response::parse (response); parsed.has_value()) {
 					// http data in json format
-					data = json::parse(parsed->data);
+					status = json::parse(parsed->data);
 					// response status code from server
-					status_code = data ["status_code"];
+					status_code = status ["status_code"];
 					// on success
 					if (status_code == 1) {
+						user ["password"] = new_password;
 						cout << "success >> password changed" << endl;
 
 					} else {
