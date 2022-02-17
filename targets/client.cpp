@@ -160,7 +160,6 @@ auto main(int argc, char **argv) -> int
 	// prepare http data 
 	auto data = json {{"access_token", access_token}, {"id", user_id}};
 
-
 	// wait for a command from user
 	do {
 		cout << "online >> ";
@@ -192,7 +191,7 @@ auto main(int argc, char **argv) -> int
 			if (auto parsed = http::response::parse (response); parsed.has_value()) {
 				// http data in json format
 				auto status = json::parse(parsed->data);
-				cout << status << endl;
+				// cout << status << endl;
 				// response status code from server
 				auto status_code = status ["status_code"];
 				// users email
@@ -247,6 +246,31 @@ auto main(int argc, char **argv) -> int
 			}
 		} else if (input == "help") {
 
+		} else if (input == "search") {
+			cout << "enter search params >> ";
+			cin >> input;
+			// get list of user from server 
+			remote << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", access_token}}.dump()};
+			remote >> response;
+			// parse response from server
+			if (auto parsed = http::response::parse (response); parsed.has_value()) {
+				auto status = json::parse(parsed->data);
+				auto status_code = status ["status_code"];
+				// on success
+				if (status_code == 1) {
+					for (auto const& u : status ["users"]) {
+						if (u["username"].get<std::string>().find(input) != std::string::npos) {
+							cout << u.dump(4) << endl;
+						} else if (u["name"].get<std::string>().find(input) != std::string::npos) {
+							cout << u.dump(4) << endl;
+						} else if (u["email"].get<std::string>().find(input) != std::string::npos) {
+							cout << u.dump(4) << endl;
+						}
+					}
+				} else {
+					cout << "error >> " << status["status_phrase"] << endl;
+				}
+			}
 		}
 	} while (input != "exit");
 

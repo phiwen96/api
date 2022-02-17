@@ -109,7 +109,36 @@ auto getUser = [](auto &&remote, auto&& data) {
 	}
 };
 auto listUsers = [](auto &&remote, auto&& data) {
+	// find access token in http request
+	auto i = data.find ("access_token");
 
+	// if http request does not contain any access token
+	if (i == data.end ()) {
+		// send response with error code
+		remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 10}, {"status_message", "Access token needed for operation"}}.dump()};
+	}
+	// if clients access token match with one we have
+	else if (auto j = access_tokens.find(*i); j != access_tokens.end()) {
+		// refer the user
+		auto& user = *(j->second);
+		// make a copy of users
+		auto&& safe_users = json {{"success", true}, {"status_code", 1}, {"status_message", "Success"}};
+		safe_users["users"] = users;
+		// auto safe_users = users;
+		// cout << users << endl;
+		// remove sensitive info for every user such as passwords
+		for (auto& u : safe_users["users"]) {
+			u.erase ("password");
+		}
+		safe_users["status_code"] = 1;
+		// cout << safe_users << endl;
+		// respond
+		remote << http::response {{1.1, 200, "OK"}, {{"Content-Type", "application/json; charset-UTF-8"}}, safe_users.dump()};
+
+	// if clients access does not match with one we have	
+	} else {
+		remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 11}, {"status_message", "Invalid access token"}}.dump()};
+	}
 };
 auto loginUser = [](auto &&remote, auto&& data)
 {
