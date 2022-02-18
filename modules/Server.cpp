@@ -3,12 +3,7 @@
 #include <fcntl.h>
 
 export module Server;
-
-export import Client;
-export import Messenger;
 export import Common;
-// export import Caller;
-export import Connection;
 export import RemoteClient;
 import std;
 import Darwin;
@@ -44,33 +39,6 @@ export
 		* use coroutines
 		* use concepts
 	*/
-
-	template <typename server>
-	concept Server = requires(server && s)
-	{
-
-		s.start();
-		s.stop();
-
-		std::move(s);
-	};
-
-
-	template <class Rep, class Period>
-	auto operator co_await(duration<Rep, Period> d)
-	{
-		struct Awaitable
-		{
-			system_clock::duration d_;
-			Awaitable(system_clock::duration d) : d_(d) {}
-			bool await_ready() const { return d_.count() <= 0; }
-			void await_suspend(coroutine_handle<> h)
-			{ /* ... */
-			}
-			void await_resume() {}
-		};
-		return Awaitable{d};
-	}
 
 	template <
 		typename accept_connection,

@@ -2,6 +2,7 @@ export module RemoteClient;
 import std;
 export import Darwin;
 
+// will ensure everything is sent to host
 inline auto sendall(int sock, char const *buf)->int
 	{
 		int total = 0;
@@ -28,6 +29,7 @@ inline auto sendall(int sock, char const *buf)->int
 
 export 
 {
+	// this will enable communication to a host
 	struct remote_client_t
 	{
 		remote_client_t(int remote_sockid) noexcept : _alive {std::chrono::system_clock::now()}, _remote_sockid {remote_sockid}
@@ -54,10 +56,6 @@ export
 
 			fcntl(_remote_sockid, F_SETFL, O_NONBLOCK | FASYNC);
 		}
-		//  : _remote_port {o._remote_port}, _remote_sockid {o._remote_sockid}
-		// {
-
-		// }
 		remote_client_t(remote_client_t && o) noexcept : _alive {o._alive}, _remote_port {o._remote_port}, _remote_sockid {o._remote_sockid}
 		{
 			std::copy (o._remote_ip_address, o._remote_ip_address + INET6_ADDRSTRLEN, _remote_ip_address);
@@ -86,24 +84,12 @@ export
 			return me;
 		}
 
-		// friend auto operator>>(std::string const& s, remote_client_t& me) -> remote_client_t&
-		// {
-		// 	sendall (me._remote_sockid, s.c_str());
-		// 	return me;
-		// }
-
-
 		friend auto operator<<(std::ostream &os, remote_client_t const &me) -> std::ostream &
 		{
 			os << me._remote_ip_address << ":" << me._remote_port;
 			return os;
 		}
 
-		// auto send (std::string const& s) {
-		// 	sendall (_remote_sockid, s.c_str());
-		// }
-
-	
 		friend auto operator== (remote_client_t const& lhs, remote_client_t const& rhs) noexcept 
 		{
 			return strcmp (lhs._remote_ip_address, rhs._remote_ip_address) != 0 and lhs._alive == rhs._alive and lhs._remote_port == rhs._remote_port and lhs._remote_sockid == rhs._remote_sockid;
@@ -114,7 +100,6 @@ export
 		}
 
 	private:
-		// sockaddr_storage _addr;
 		char _remote_ip_address[INET6_ADDRSTRLEN];
 		std::chrono::time_point <std::chrono::system_clock> _alive;
 		int _remote_port;
