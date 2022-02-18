@@ -52,7 +52,7 @@ auto resetPassword = [](auto&& remote, auto&& data) {
 		remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 11}, {"status_message", "Invalid access token"}}.dump()};
 	}
 };
-auto createUser = [](auto &&remote, auto &&data)
+auto registerUser = [](auto &&remote, auto &&data)
 {
 	// if ()
 	// check if username already exists
@@ -130,8 +130,6 @@ auto listUsers = [](auto &&remote, auto&& data) {
 		for (auto& u : safe_users["users"]) {
 			u.erase ("password");
 		}
-		safe_users["status_code"] = 1;
-		// cout << safe_users << endl;
 		// respond
 		remote << http::response {{1.1, 200, "OK"}, {{"Content-Type", "application/json; charset-UTF-8"}}, safe_users.dump()};
 
@@ -140,7 +138,7 @@ auto listUsers = [](auto &&remote, auto&& data) {
 		remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 11}, {"status_message", "Invalid access token"}}.dump()};
 	}
 };
-auto loginUser = [](auto &&remote, auto&& data)
+auto authenticateUser = [](auto &&remote, auto&& data)
 {
 	// find the user
 	for (auto &user : users)
@@ -173,19 +171,43 @@ auto loginUser = [](auto &&remote, auto&& data)
 	// username not found so respond with an error code
 	remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 4}, {"status_message", "Incorrect username"}}.dump()};
 };
-auto deleteUser = [](auto &&remote, auto const &user_json) {
+auto unregisterUser = [](auto &&remote, auto&& data) {
+	// find access token in http request
+	auto i = data.find ("access_token");
 
-};
-auto updateUser = [](auto &&remote, auto const &user_json) {
+	// if http request does not contain any access token
+	if (i == data.end ()) {
+		// send response with error code
+		remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 10}, {"status_message", "Access token needed for operation"}}.dump()};
+	}
+	// if clients access token match with one we have
+	else if (auto j = access_tokens.find(*i); j != access_tokens.end()) {
+		// refer the user
+		auto& user = *(j->second);
+		// remove access token
+		access_tokens.erase(j);
+		// remove the user
+		if (auto found = users.find(user); found != users.end()) {
+			users.erase(found);
+			// respond with success code
+			remote << http::response {{1.1, 200, "OK"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", true}, {"status_code", 1}, {"status_message", "Success"}}.dump()};
+		} else {
+			// respond with error code
+			remote << http::response {{1.1, 404, "Not Found"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 12}, {"status_message", "Cannot remove a user that doesn't exist"}}.dump()};
 
+		}
+	// if clients access does not match with one we have	
+	} else {
+		remote << http::response {{1.1, 401, "Unauthorized"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 11}, {"status_message", "Invalid access token"}}.dump()};
+	}
 };
+
 auto mappedFunctions = tuple{
-	pair{string{"/create"}, createUser},
+	pair{string{"/register"}, registerUser},
 	pair{string{"/get"}, getUser},
 	pair{string{"/list"}, listUsers},
-	pair{string{"/delete"}, deleteUser},
-	pair{string{"/update"}, updateUser},
-	pair{string{"/login"}, loginUser},
+	pair{string{"/unregister"}, unregisterUser},
+	pair{string{"/authenticate"}, authenticateUser},
 	pair{string{"/reset"}, resetPassword}};
 auto method = []<typename T, typename... U>(T && input, U &&...params)
 {
@@ -216,14 +238,14 @@ auto incomingMessage = [](auto &&remote, std::string msg)
 	// try to parse incoming message
 	auto parsed = http::request::parse(msg);
 
-	// if parsing there is a parsing error
+	// if there is a parsing error
 	if (not parsed)
 	{
 		remote << http::response {{1.1, 400, "Bad Request"}, {{"Content-Type: ", "application/json; charset-UTF-8"}}, json{{"success", false}, {"status_code", 3}, {"status_message", "Could not interpret the request"}}.dump()};
 	}
 
 	// call the right url method if found
-	else if (method(parsed.value().request_line.url, remote, json::parse(parsed.value().data)))
+	else if (method(parsed.value().request_line.url, std::move (remote), json::parse(parsed.value().data)))
 	{
 	}
 

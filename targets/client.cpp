@@ -12,10 +12,42 @@ using namespace nlohmann;
 
 using std::cout, std::cin, std::endl, std::string;
 
-auto createUser()
-{
-}
+auto onHelp = []{
 
+};
+
+auto onList = []{
+
+};
+
+auto onExit = []{
+
+};
+
+auto onUnregister = []{
+
+};
+
+auto onSearch = []{
+
+};
+
+auto onReset = []{
+
+};
+
+auto onWrongInput = []{
+
+};
+
+auto commands = tuple{
+	pair{string{"help"}, onHelp},
+	pair{string{"list"}, onList},
+	pair{string{"exit"}, onExit},
+	pair{string{"unregister"}, onUnregister},
+	pair{string{"search"}, onSearch},
+	pair{string{"reset"}, onReset},
+	pair{string{"wrongInput"}, onWrongInput}};
 auto main(int argc, char **argv) -> int
 {
 	// struct {
@@ -61,7 +93,7 @@ auto main(int argc, char **argv) -> int
 	user["password"] = input;
 
 	// prepare the http request for login
-	auto request = http::request{{"GET", 1.1, "/login"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+	auto request = http::request{{"GET", 1.1, "/authenticate"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 
 	// loops until we have got an access token for user
 	while (true)
@@ -77,7 +109,7 @@ auto main(int argc, char **argv) -> int
 		{
 			// get http data from server in json format
 			auto data = json::parse(parsed->data);
-
+			
 			// get status code from server
 			auto status_code = data["status_code"];
 
@@ -119,7 +151,7 @@ auto main(int argc, char **argv) -> int
 					user["email"] = input;
 
 					// change the request so that the server may create the new user
-					request = http::request{{"POST", 1.1, "/create"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
+					request = http::request{{"POST", 1.1, "/register"}, {{"Content-Type", "application/json; charset-UTF-8"}}, user.dump()};
 					continue;
 				}
 
@@ -139,6 +171,8 @@ auto main(int argc, char **argv) -> int
 			else if (status_code == 7)
 			{
 				cout << "error >> failed to create user" << endl;
+			} else {
+				cout << "error >> " << data["status_message"] << endl;
 			}
 		}
 
@@ -161,12 +195,30 @@ auto main(int argc, char **argv) -> int
 	auto data = json {{"access_token", access_token}, {"id", user_id}};
 
 	// wait for a command from user
-	do {
+	while (true) {
 		cout << "online >> ";
 		cin >> input;
-
-		if (input == "list") {
-
+		if (input == "exit") {
+			break;
+		} else if (input == "list") {
+			// get list of users from server 
+			remote << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", access_token}}.dump()};
+			remote >> response;
+			// parse response from server
+			if (auto parsed = http::response::parse (response); parsed.has_value()) {
+				auto status = json::parse(parsed->data);
+				auto status_code = status ["status_code"];
+				// on success
+				if (status_code == 1) {
+					// print list of users
+					cout << status["users"].dump(4);
+				} else {
+					cout << "error >> " << status["status_message"] << endl;
+				}
+			} else {
+				cout << "error >> failed to parse response from server" << endl;
+				continue;
+			}
 		} else if (input == "reset") {
 			// query for a new password
 			cout << "new password >> ";
@@ -242,14 +294,20 @@ auto main(int argc, char **argv) -> int
 				}
 			} else {
 				cout << "error >> failed to parse response from server" << endl;
-				continue;
 			}
 		} else if (input == "help") {
-
+			cout << "Commands\n\n";
+			cout << setw(20) << std::left << "list"
+			cout << "\tlist >> prints all users" << endl;
+			cout << "\tsearch >> start a seach" << endl;
+			cout << "\thelp >> if u need help" << endl;
+			cout << "\texit >> exits application" << endl;
+			cout << "\treset >> resets password" << endl;
+			cout << "\tunregister >> unregisters user" << endl;
 		} else if (input == "search") {
 			cout << "enter search params >> ";
 			cin >> input;
-			// get list of user from server 
+			// get list of users from server 
 			remote << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", access_token}}.dump()};
 			remote >> response;
 			// parse response from server
@@ -258,7 +316,9 @@ auto main(int argc, char **argv) -> int
 				auto status_code = status ["status_code"];
 				// on success
 				if (status_code == 1) {
+					// loop through users in the list we got from server
 					for (auto const& u : status ["users"]) {
+						// if anything match, print it out
 						if (u["username"].get<std::string>().find(input) != std::string::npos) {
 							cout << u.dump(4) << endl;
 						} else if (u["name"].get<std::string>().find(input) != std::string::npos) {
@@ -268,11 +328,14 @@ auto main(int argc, char **argv) -> int
 						}
 					}
 				} else {
-					cout << "error >> " << status["status_phrase"] << endl;
+					cout << "error >> " << status["status_message"] << endl;
 				}
+			} else {
+				cout << "error >> failed to parse response from server" << endl;
+				continue;
 			}
 		}
-	} while (input != "exit");
+	}
 
 
 
