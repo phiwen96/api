@@ -2,11 +2,14 @@ import Usr;
 import Server;
 import Http;
 import std;
+import Darwin;
 
 using std::cout, std::endl, std::move, std::string, std::vector, std::tuple, std::pair, std::unordered_map;
 
 #include <nlohmann/json.hpp>
 using namespace nlohmann;
+
+#define DATA_FILE "data/users.json"
 
 // every access token is related with a user id
 auto access_tokens = unordered_map<string, int>{};
@@ -24,7 +27,19 @@ auto generate_access_token = []()
 	return res;
 };
 
+// will hold all users
 auto users = json{};
+
+// handle ^C
+void sigint_handler(int sig)
+{
+    // save users to file
+	auto file = std::ofstream {DATA_FILE};
+	file << users;
+	file.close();
+	exit (0);
+}
+
 
 // do nothing yet
 auto newConnection = [](auto &&remote) {
@@ -321,16 +336,30 @@ auto incomingMessage = [](auto &&remote, std::string msg)
 };
 auto main(int argc, char **argv) -> int
 {
-	auto file_users = std::ifstream{"data/users.json"};
-	file_users >> users;
-	file_users.close();
-
 	if (argc != 2)
 	{
 		cout << "usage >> "
 			 << "<localPORT>" << endl;
 		return 1;
 	}
+
+	// setup ^C interrupt function
+	[&]{
+		struct sigaction sa {};
+		sa.sa_handler = sigint_handler;
+    	sa.sa_flags = 0;
+
+		sigemptyset(&sa.sa_mask);
+
+		if (sigaction(SIGINT, &sa, NULL) == -1) {
+			perror("sigaction");
+			exit(1);
+		}
+	}();
+	// load users from file
+	auto file_users = std::ifstream{DATA_FILE};
+	file_users >> users;
+	file_users.close();
 
 	auto s = make_server(
 		argv[1],

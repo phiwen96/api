@@ -213,7 +213,7 @@ auto onSearch = [] (auto& remoteServer, auto& user)
 			for (auto const &u : status["users"])
 			{
 				// if anything match, print it out
-				if (u["username"].get<std::string>().find(input) != std::string::npos)
+				if (u["username"].get<std::string>().find(searchParams) != std::string::npos)
 				{
 					cout << u.dump(4) << endl;
 				}
@@ -224,9 +224,7 @@ auto onSearch = [] (auto& remoteServer, auto& user)
 				else if (u["email"].get<std::string>().find(input) != std::string::npos)
 				{
 					cout << u.dump(4) << endl;
-				} else {
-					cout << "not found >> could not find anything with that search param" << endl;
-				}
+				} 
 			}
 		}
 		else
