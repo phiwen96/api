@@ -8,15 +8,15 @@ import Darwin;
 
 export{
 	// helper function to generate an access token
-	inline auto random_int () noexcept
+	inline auto random_int (auto min, auto max) noexcept
 	{
-		constexpr auto min = 1000;
-		constexpr auto max = 9999;
 		// One engine instance per thread
 		static thread_local auto engine = std::default_random_engine{std::random_device{}()};
 		auto dist = std::uniform_int_distribution<>{min, max};
 		return dist(engine);
 	}
+
+
 	// get sockaddr, IPv4 or IPv6
 	inline auto get_in_addr(sockaddr * sa)->void *
 	{

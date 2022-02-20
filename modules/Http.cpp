@@ -19,6 +19,10 @@ export namespace http {
 
 	// using status_t = typename decltype(status)::value_type;
 
+	// enum class request_type {
+	// 	GET, POST, PUT, DELETE
+	// };
+
 	/*
 		request type
 

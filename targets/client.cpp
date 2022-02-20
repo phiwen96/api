@@ -9,202 +9,6 @@ using namespace nlohmann;
 
 using std::cout, std::cin, std::endl, std::string, std::unordered_map;
 
-// functions that will map into commands on console
-
-auto onHelp = [] (auto& remoteServer, auto& user)
-{
-	cout << "Commands\n\n";
-	cout << std::setw(20) << std::left << "list" << endl;
-	cout << "\tlist >> prints all users" << endl;
-	cout << "\tsearch >> start a seach" << endl;
-	cout << "\thelp >> if u need help" << endl;
-	cout << "\texit >> exits application" << endl;
-	cout << "\treset >> resets password" << endl;
-	cout << "\tunregister >> unregisters user" << endl;
-};
-
-auto onList = [] (auto& remoteServer, auto& user)
-{
-	auto input = std::string {};
-
-	// get list of users from server
-	remoteServer << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}}.dump()};
-	remoteServer >> input;
-	// parse response from server
-	if (auto parsed = http::response::parse(input); parsed.has_value())
-	{
-		auto status = json::parse(parsed->data);
-		auto status_code = status["status_code"];
-		// on success
-		if (status_code == 1)
-		{
-			// print list of users
-			cout << status["users"].dump(4);
-		}
-		else
-		{
-			cout << "error >> " << status["status_message"] << endl;
-		}
-	}
-	else
-	{
-		cout << "error >> failed to parse response from server" << endl;
-	}
-};
-
-auto onExit = [] (auto& remoteServer, auto& user)
-{
-	exit(0);
-};
-
-auto onUnregister = [] (auto& remoteServer, auto& user) {
-
-};
-
-auto onSearch = [] (auto& remoteServer, auto& user)
-{
-	auto input = std::string {};
-	auto searchParams = std::string {};
-	cout << "enter search params >> ";
-	cin >> searchParams;
-	// get list of users from server
-	remoteServer << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}}.dump()};
-	remoteServer >> input;
-	// parse response from server
-	if (auto parsed = http::response::parse(input); parsed.has_value())
-	{
-		auto status = json::parse(parsed->data);
-		auto status_code = status["status_code"];
-		// on success
-		if (status_code == 1)
-		{
-			// loop through users in the list we got from server
-			for (auto const &u : status["users"])
-			{
-				// if anything match, print it out
-				if (u["username"].get<std::string>().find(input) != std::string::npos)
-				{
-					cout << u.dump(4) << endl;
-				}
-				else if (u["name"].get<std::string>().find(input) != std::string::npos)
-				{
-					cout << u.dump(4) << endl;
-				}
-				else if (u["email"].get<std::string>().find(input) != std::string::npos)
-				{
-					cout << u.dump(4) << endl;
-				} else {
-					cout << "not found >> could not find anything with that search param" << endl;
-				}
-			}
-		}
-		else
-		{
-			cout << "error >> " << status["status_message"] << endl;
-		}
-	}
-	else
-	{
-		cout << "error >> failed to parse response from server" << endl;
-	}
-};
-
-auto onReset = [] (auto& remoteServer, auto& user)
-{
-	auto input = std::string {};
-	// query for a new password
-	cout << "new password >> ";
-	cin >> input;
-
-	// if user entered same password as before, warn and try again
-	while (input == user["password"])
-	{
-		cout << "error >> new password must be NEW" << endl;
-		cout << "new password >> ";
-		cin >> input;
-	}
-
-	auto const new_password = input;
-
-	// send request to get userinfo and email from server
-	remoteServer << http::request {{"GET", 1.1, "/get"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}, {"id", user["id"]}}.dump()};
-	// get response
-	remoteServer >> input;
-	// parse http request
-	if (auto parsed = http::response::parse(input); parsed.has_value())
-	{
-		// http data in json format
-		auto status = json::parse(parsed->data);
-		// cout << status << endl;
-		// response status code from server
-		auto status_code = status["status_code"];
-		// users email
-		auto email_addr = status["email"];
-		// generate a random verification code
-		auto verification_code = std::to_string(random_int());
-		// send verification code to user email address
-		send_email(email_addr.get<std::string>().c_str(), verification_code.c_str());
-
-		// let user enter verification code
-		cout << "email verification code >> ";
-		cin >> input;
-
-		// warn and try again when wrong verification code
-		while (input != verification_code)
-		{
-			cout << "error >> wrong verification code";
-			cout << "email verification code >> ";
-			cin >> input;
-		}
-
-		// send request for resetting user password
-		remoteServer << http::request {{"PUT", 1.1, "/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}, {"id", user ["id"]}, {"password", new_password}}.dump()};
-
-		// get response from server
-		remoteServer >> input;
-
-		// parse response
-		if (parsed = http::response::parse(input); parsed.has_value())
-		{
-			// http data in json format
-			status = json::parse(parsed->data);
-			// response status code from server
-			status_code = status["status_code"];
-			// on success
-			if (status_code == 1)
-			{
-				user["password"] = new_password;
-				cout << "success >> password changed" << endl;
-			}
-			else
-			{
-				cout << "error >> failed to change password" << endl;
-			}
-		}
-		else
-		{
-			cout << "error >> failed to parse response from server" << endl;
-		}
-	}
-	else
-	{
-		cout << "error >> failed to parse response from server" << endl;
-	}
-};
-
-auto onWrongInput = [] (auto& remoteServer, auto& user) {
-
-};
-
-auto commands = unordered_map<string, void (*)(remote_server_t&, json&)>{
-	{"help", onHelp},
-	{"list", onList},
-	{"exit", onExit},
-	{"unregister", onUnregister},
-	{"search", onSearch},
-	{"reset", onReset},
-	{"wrongInput", onWrongInput}};
-
 // sets us up with an access token from the server
 auto authenticate = [](auto& remoteServer, auto& user) {
 	auto input = std::string {};
@@ -313,6 +117,226 @@ auto authenticate = [](auto& remoteServer, auto& user) {
 		user["password"] = input;
 	}
 };
+
+// functions that will map into commands on console
+
+auto onHelp = [] (auto& remoteServer, auto& user)
+{
+	cout << "Commands\n\n";
+	cout << std::setw(20) << std::left << "list" << endl;
+	cout << "\tlist >> prints all users" << endl;
+	cout << "\tsearch >> start a seach" << endl;
+	cout << "\thelp >> if u need help" << endl;
+	cout << "\texit >> exits application" << endl;
+	cout << "\treset >> resets password" << endl;
+	cout << "\tunregister >> unregisters user" << endl;
+};
+
+auto onList = [] (auto& remoteServer, auto& user)
+{
+	auto input = std::string {};
+
+	// get list of users from server
+	remoteServer << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}}.dump()};
+	remoteServer >> input;
+	// parse response from server
+	if (auto parsed = http::response::parse(input); parsed.has_value())
+	{
+		auto status = json::parse(parsed->data);
+		auto status_code = status["status_code"];
+		// on success
+		if (status_code == 1)
+		{
+			// print list of users
+			cout << status["users"].dump(4) << endl;
+		}
+		else
+		{
+			cout << "error >> " << status["status_message"] << endl;
+		}
+	}
+	else
+	{
+		cout << "error >> failed to parse response from server" << endl;
+	}
+};
+
+auto onExit = [] (auto& remoteServer, auto& user)
+{
+	exit(0);
+};
+
+auto onUnregister = [] (auto& remoteServer, auto& user) {
+	remoteServer << http::request {{"GET", 1.1, "/unregister"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}}.dump()};
+	auto input = std::string {};
+	remoteServer >> input;
+	// parse response from server
+	if (auto parsed = http::response::parse(input); parsed.has_value())
+	{
+		auto status = json::parse(parsed->data);
+		auto status_code = status["status_code"];
+		// on success
+		if (status_code == 1)
+		{
+
+		} else
+		{
+			cout << "error >> " << status["status_message"] << endl;
+		}
+
+	} else
+	{
+		cout << "error >> failed to parse response from server" << endl;
+	}
+
+	authenticate (remoteServer, user);
+};
+
+auto onSearch = [] (auto& remoteServer, auto& user)
+{
+	auto input = std::string {};
+	auto searchParams = std::string {};
+	cout << "enter search params >> ";
+	cin >> searchParams;
+	// get list of users from server
+	remoteServer << http::request{{"GET", 1.1, "/list"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}}.dump()};
+	remoteServer >> input;
+	// parse response from server
+	if (auto parsed = http::response::parse(input); parsed.has_value())
+	{
+		auto status = json::parse(parsed->data);
+		auto status_code = status["status_code"];
+		// on success
+		if (status_code == 1)
+		{
+			// loop through users in the list we got from server
+			for (auto const &u : status["users"])
+			{
+				// if anything match, print it out
+				if (u["username"].get<std::string>().find(input) != std::string::npos)
+				{
+					cout << u.dump(4) << endl;
+				}
+				else if (u["name"].get<std::string>().find(input) != std::string::npos)
+				{
+					cout << u.dump(4) << endl;
+				}
+				else if (u["email"].get<std::string>().find(input) != std::string::npos)
+				{
+					cout << u.dump(4) << endl;
+				} else {
+					cout << "not found >> could not find anything with that search param" << endl;
+				}
+			}
+		}
+		else
+		{
+			cout << "error >> " << status["status_message"] << endl;
+		}
+	}
+	else
+	{
+		cout << "error >> failed to parse response from server" << endl;
+	}
+};
+
+auto onReset = [] (auto& remoteServer, auto& user)
+{
+	auto input = std::string {};
+	// query for a new password
+	cout << "new password >> ";
+	cin >> input;
+
+	// if user entered same password as before, warn and try again
+	while (input == user["password"])
+	{
+		cout << "error >> new password must be NEW" << endl;
+		cout << "new password >> ";
+		cin >> input;
+	}
+
+	auto const new_password = input;
+
+	// send request to get userinfo and email from server
+	remoteServer << http::request {{"GET", 1.1, "/get"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}, {"id", user["id"]}}.dump()};
+	// get response
+	remoteServer >> input;
+	// parse http request
+	if (auto parsed = http::response::parse(input); parsed.has_value())
+	{
+		// http data in json format
+		auto status = json::parse(parsed->data);
+		// cout << status << endl;
+		// response status code from server
+		auto status_code = status["status_code"];
+		// users email
+		auto email_addr = status["email"];
+		// generate a random verification code
+		auto verification_code = std::to_string(random_int(1000, 9999));
+		// send verification code to user email address
+		send_email(email_addr.get<std::string>().c_str(), verification_code.c_str());
+
+		// let user enter verification code
+		cout << "email verification code >> ";
+		cin >> input;
+
+		// warn and try again when wrong verification code
+		while (input != verification_code)
+		{
+			cout << "error >> wrong verification code";
+			cout << "email verification code >> ";
+			cin >> input;
+		}
+
+		// send request for resetting user password
+		remoteServer << http::request {{"PUT", 1.1, "/reset"}, {{"Content-Type", "application/json; charset-UTF-8"}}, json{{"access_token", user["access_token"]}, {"id", user ["id"]}, {"password", new_password}}.dump()};
+
+		// get response from server
+		remoteServer >> input;
+
+		// parse response
+		if (parsed = http::response::parse(input); parsed.has_value())
+		{
+			// http data in json format
+			status = json::parse(parsed->data);
+			// response status code from server
+			status_code = status["status_code"];
+			// on success
+			if (status_code == 1)
+			{
+				user["password"] = new_password;
+				cout << "success >> password changed" << endl;
+			}
+			else
+			{
+				cout << "error >> failed to change password" << endl;
+			}
+		}
+		else
+		{
+			cout << "error >> failed to parse response from server" << endl;
+		}
+	}
+	else
+	{
+		cout << "error >> failed to parse response from server" << endl;
+	}
+};
+
+auto onWrongInput = [] (auto& remoteServer, auto& user) {
+	cout << "error >> command not found" << endl;
+};
+
+auto commands = unordered_map<string, void (*)(remote_server_t&, json&)>{
+	{"help", onHelp},
+	{"list", onList},
+	{"exit", onExit},
+	{"unregister", onUnregister},
+	{"search", onSearch},
+	{"reset", onReset},
+	{"wrongInput", onWrongInput}};
+
+
 auto main(int argc, char **argv) -> int
 {
 	if (argc != 3)
